@@ -1,6 +1,6 @@
 require 'multi_json'
 
-module ResqueBus
+module QueueBus
   module Util
     extend self
 

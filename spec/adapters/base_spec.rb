@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-module ResqueBus
+module QueueBus
   describe Adapters::Base do
 
   end

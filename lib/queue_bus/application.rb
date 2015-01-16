@@ -1,11 +1,11 @@
-module ResqueBus
+module QueueBus
   class Application
 
     class << self
 
       def all
         # note the names arent the same as we started with
-        ::ResqueBus.redis { |redis| redis.smembers(app_list_key).collect{ |val| new(val) } }
+        ::QueueBus.redis { |redis| redis.smembers(app_list_key).collect{ |val| new(val) } }
       end
     end
 
@@ -31,15 +31,15 @@ module ResqueBus
 
       redis_hash = subscription_list.to_redis
       redis_hash.each do |key, hash|
-        ::ResqueBus.redis { |redis| redis.hset(temp_key, key, ResqueBus::Util.encode(hash)) }
+        ::QueueBus.redis { |redis| redis.hset(temp_key, key, QueueBus::Util.encode(hash)) }
       end
 
       # make it the real one
-      ::ResqueBus.redis { |redis| redis.rename(temp_key, redis_key) }
-      ::ResqueBus.redis { |redis| redis.sadd(self.class.app_list_key, app_key) }
+      ::QueueBus.redis { |redis| redis.rename(temp_key, redis_key) }
+      ::QueueBus.redis { |redis| redis.sadd(self.class.app_list_key, app_key) }
 
       if log
-        puts ::ResqueBus.redis { |redis| redis.hgetall(redis_key).inspect }
+        puts ::QueueBus.redis { |redis| redis.hgetall(redis_key).inspect }
       end
 
       true
@@ -47,8 +47,8 @@ module ResqueBus
 
     def unsubscribe
       # TODO: clean up known queues?
-      ::ResqueBus.redis { |redis| redis.srem(self.class.app_list_key, app_key) }
-      ::ResqueBus.redis { |redis| redis.del(redis_key) }
+      ::QueueBus.redis { |redis| redis.srem(self.class.app_list_key, app_key) }
+      ::QueueBus.redis { |redis| redis.del(redis_key) }
     end
 
     def no_connect_queue_names_for(subscriptions)
@@ -84,15 +84,15 @@ module ResqueBus
     end
 
     def self.app_list_key
-      "resquebus_apps"
+      "bus_apps"
     end
 
     def self.app_single_key
-      "resquebus_app"
+      "bus_app"
     end
 
     def event_queues
-      ::ResqueBus.redis { |redis| redis.hgetall(redis_key) }
+      ::QueueBus.redis { |redis| redis.hgetall(redis_key) }
     end
 
     def subscriptions
@@ -101,11 +101,11 @@ module ResqueBus
 
     def read_redis_hash
       out = {}
-      ::ResqueBus.redis do |redis|
+      ::QueueBus.redis do |redis|
         redis.hgetall(redis_key).each do |key, val|
           begin
-            out[key] = ::ResqueBus::Util.decode(val)
-          rescue ::ResqueBus::Util::DecodeException
+            out[key] = ::QueueBus::Util.decode(val)
+          rescue ::QueueBus::Util::DecodeException
             out[key] = val
           end
         end

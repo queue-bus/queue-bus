@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   class Subscription
 
     class << self
@@ -33,7 +33,7 @@ module ResqueBus
 
     def execute!(attributes)
       attributes = attributes.with_indifferent_access if attributes.respond_to?(:with_indifferent_access)
-      ::ResqueBus.with_global_attributes(attributes) do
+      ::QueueBus.with_global_attributes(attributes) do
         executor.call(attributes)
       end
     end

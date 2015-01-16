@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   class Worker
     # all our workers extend this one
     module InstanceMethods

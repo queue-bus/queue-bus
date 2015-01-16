@@ -1,2 +1,2 @@
-rvm use 1.9.3-p194@resque-bus --install --create
+rvm use 1.9.3-p194@queue-bus --install --create
 export PATH=./bin:$PATH

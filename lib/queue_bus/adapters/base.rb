@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   module Adapters
     class Base
       # adapters need to define the NonImplemented methods in this class
@@ -35,7 +35,7 @@ module ResqueBus
 
       def subscriber_includes(base)
         # optional method for including more modules in classes that
-        # include ::ResqueBus::Subscriber
+        # include ::QueueBus::Subscriber
       end
     end
   end

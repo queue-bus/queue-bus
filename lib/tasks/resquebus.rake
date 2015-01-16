@@ -1,2 +1,2 @@
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
-require 'resque_bus/tasks'
+require 'queue_bus/tasks'

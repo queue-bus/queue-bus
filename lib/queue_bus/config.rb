@@ -1,22 +1,21 @@
-module ResqueBus
+module QueueBus
   class Config
     def adapter=val
       raise "Adapter already set to #{@adapter_instance.class.name}" if @adapter_instance
       if val.is_a?(Class)
         @adapter_instance = name_or_klass.new
-      elsif val.is_a?(::ResqueBus::Adapters::Base)
+      elsif val.is_a?(::QueueBus::Adapters::Base)
         @adapter_instance = val
       else
-        class_name = ::ResqueBus::Util.classify(val)
-        @adapter_instance = ::ResqueBus::Util.constantize("::ResqueBus::Adapters::#{class_name}").new
+        class_name = ::QueueBus::Util.classify(val)
+        @adapter_instance = ::QueueBus::Util.constantize("::QueueBus::Adapters::#{class_name}").new
       end
       @adapter_instance
     end
 
     def adapter
       return @adapter_instance if @adapter_instance
-      self.adapter = :resque # default
-      @adapter_instance
+      raise "no adapter has been set"
     end
 
     def redis(&block)
@@ -48,6 +47,14 @@ module ResqueBus
       @local_mode
     end
 
+    def incoming_queue=val
+      @incoming_queue = val
+    end
+
+    def incoming_queue
+      @incoming_queue ||= "bus_incoming"
+    end
+
     def hostname
       @hostname ||= `hostname 2>&1`.strip.sub(/.local/,'')
     end
@@ -77,7 +84,7 @@ module ResqueBus
     def log_application(message)
       if logger
         time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        logger.info("** [#{time}] #$$: ResqueBus #{message}")
+        logger.info("** [#{time}] #$$: QueueBus #{message}")
       end
     end
 

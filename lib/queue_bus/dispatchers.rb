@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   class Dispatchers
     def dispatch(app_key=nil, &block)
       dispatcher = dispatcher_by_key(app_key)
@@ -12,7 +12,7 @@ module ResqueBus
     end
     
     def dispatcher_by_key(app_key)
-      app_key = Application.normalize(app_key || ::ResqueBus.default_app_key)
+      app_key = Application.normalize(app_key || ::QueueBus.default_app_key)
       @dispatchers ||= {}
       @dispatchers[app_key] ||= Dispatch.new(app_key)
     end

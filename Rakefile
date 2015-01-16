@@ -1,2 +1,2 @@
 $LOAD_PATH.unshift 'lib'
-require 'resque_bus/tasks'
+require 'queue_bus/tasks'

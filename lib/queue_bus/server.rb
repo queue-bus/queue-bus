@@ -2,8 +2,9 @@ require 'resque-bus'
 require 'resque/server'
 require 'erb'
 
+# MIGRATE TODO: move to resque gem
 # Extend ::Resque::Server to add tabs.
-module ResqueBus
+module QueueBus
   module Server
 
     def self.included(base)
@@ -26,5 +27,5 @@ end
 
 ::Resque::Server.tabs << 'Bus'
 ::Resque::Server.class_eval do
-  include ::ResqueBus::Server
+  include ::QueueBus::Server
 end

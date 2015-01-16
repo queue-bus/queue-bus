@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   class SubscriptionList
 
     class << self

@@ -1,6 +1,6 @@
 # Creates a DSL for apps to define their blocks to run for event_types
 
-module ResqueBus
+module QueueBus
   class Dispatch
 
     attr_reader :app_key, :subscriptions
@@ -49,7 +49,7 @@ module ResqueBus
     def dispatch_event(queue, key, matcher_hash, block)
       # if not matcher_hash, assume key is a event_type regex
       matcher_hash ||= { "bus_event_type" => key }
-      add_subscription("#{app_key}_#{queue}", key, "::ResqueBus::Rider", matcher_hash, block)
+      add_subscription("#{app_key}_#{queue}", key, "::QueueBus::Rider", matcher_hash, block)
     end
     
     def add_subscription(queue_name, key, class_name, matcher_hash = nil, block)

@@ -1,4 +1,4 @@
-module ResqueBus
+module QueueBus
   class Matcher
     SPECIAL_PREPEND = "bus_special_value_"
     attr_reader :filters

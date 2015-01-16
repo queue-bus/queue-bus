@@ -1,11 +1,11 @@
-module ResqueBus
+module QueueBus
   # publishes event about the current time
-  class Heartbeat < ::ResqueBus::Worker
+  class Heartbeat < ::QueueBus::Worker
 
     class << self
 
       def lock_key
-        "resquebus:heartbeat:lock"
+        "bus:heartbeat:lock"
       end
 
       def lock_seconds
@@ -17,15 +17,15 @@ module ResqueBus
         timeout = now + lock_seconds + 2
 
         # return true if we successfully acquired the lock
-        return timeout if ::ResqueBus.redis { |redis| redis.setnx(lock_key, timeout) }
+        return timeout if ::QueueBus.redis { |redis| redis.setnx(lock_key, timeout) }
 
         # see if the existing timeout is still valid and return false if it is
         # (we cannot acquire the lock during the timeout period)
-        return 0 if now <= ::ResqueBus.redis { |redis| redis.get(lock_key) }.to_i
+        return 0 if now <= ::QueueBus.redis { |redis| redis.get(lock_key) }.to_i
 
         # otherwise set the timeout and ensure that no other worker has
         # acquired the lock
-        if now > ::ResqueBus.redis { |redis| redis.getset(lock_key, timeout) }.to_i
+        if now > ::QueueBus.redis { |redis| redis.getset(lock_key, timeout) }.to_i
           return timeout
         else
           return 0
@@ -33,20 +33,20 @@ module ResqueBus
       end
 
       def unlock!
-        ::ResqueBus.redis { |redis| redis.del(lock_key) }
+        ::QueueBus.redis { |redis| redis.del(lock_key) }
       end
 
 
       def redis_key
-        "resquebus:heartbeat:timestamp"
+        "bus:heartbeat:timestamp"
       end
 
       def environment_name
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["RESQUEBUS_ENV"]
+        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["BUS_ENV"]
       end
 
       def get_saved_minute!
-        key = ::ResqueBus.redis { |redis| redis.get(redis_key) }
+        key = ::QueueBus.redis { |redis| redis.get(redis_key) }
         return nil if key.nil?
         case environment_name
         when 'development', 'test'
@@ -58,7 +58,7 @@ module ResqueBus
       end
 
       def set_saved_minute!(epoch_minute)
-        ::ResqueBus.redis { |redis| redis.set(redis_key, epoch_minute) }
+        ::QueueBus.redis { |redis| redis.set(redis_key, epoch_minute) }
       end
 
       def perform
@@ -94,7 +94,7 @@ module ResqueBus
           attributes["yday"]   = now.yday
           attributes["wday"]   = now.wday
 
-          ::ResqueBus.publish("heartbeat_minutes", attributes)
+          ::QueueBus.publish("heartbeat_minutes", attributes)
           set_saved_minute!(minutes)
         end
 
