@@ -30,10 +30,6 @@ module QueueBus
 
       protected
 
-      def default_namespace
-        :resque
-      end
-
       def push(queue, item)
         watch_queue(queue)
         self.redis { |redis| redis.rpush "queue:#{queue}", ::QueueBus::Util.encode(item) }
