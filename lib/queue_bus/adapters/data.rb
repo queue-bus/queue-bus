@@ -41,7 +41,6 @@ module QueueBus
         self.redis { |redis| redis.sadd(:queues, queue.to_s) }
       end
 
-      ### From Resque Scheduler
       # Used internally to stuff the item into the schedule sorted list.
       # +timestamp+ can be either in seconds or a datetime object
       # Insertion if O(log(n)).
