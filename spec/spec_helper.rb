@@ -1,6 +1,6 @@
 require 'timecop'
 require 'queue-bus'
-require 'redis'
+require 'adapter/support'
 
 module QueueBus
   class Runner
@@ -31,12 +31,6 @@ module QueueBus
   end
 end
 
-def perform_next_job(worker, &block)
-  return unless job = @worker.reserve
-  @worker.perform(job, &block)
-  @worker.done_working
-end
-
 def test_sub(event_name, queue="default")
   matcher = {"bus_event_type" => event_name}
   QueueBus::Subscription.new(queue, event_name, "::QueueBus::Rider", matcher, nil)
@@ -48,12 +42,6 @@ def test_list(*args)
     out.add(sub)
   end
   out
-end
-
-def reset_test_adapter
-  QueueBus.send(:reset)
-  QueueBus.adapter = :data
-  QueueBus.adapter.redis = Redis.new
 end
 
 RSpec.configure do |config|

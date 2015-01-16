@@ -49,7 +49,7 @@ describe "QueueBus config" do
   end
 
   it "should default to given adapter" do
-    QueueBus.adapter.is_a?(QueueBus::Adapters::Data).should == true
+    QueueBus.adapter.is_a?(adapter_under_test_class).should == true
 
     # and should raise if already set
     lambda {
@@ -63,8 +63,8 @@ describe "QueueBus config" do
     end
 
     it "should be able to be set to resque" do
-      QueueBus.adapter = :data
-      QueueBus.adapter.is_a?(QueueBus::Adapters::Data).should == true
+      QueueBus.adapter = adapter_under_test_symbol
+      QueueBus.adapter.is_a?(adapter_under_test_class).should == true
 
       # and should raise if already set
       lambda {
