@@ -29,17 +29,19 @@ module QueueBus
 
       temp_key = "temp_#{redis_key}:#{rand(999999999)}"
 
-      redis_hash = subscription_list.to_redis
-      redis_hash.each do |key, hash|
-        ::QueueBus.redis { |redis| redis.hset(temp_key, key, QueueBus::Util.encode(hash)) }
-      end
+      ::QueueBus.redis do |redis|
+        redis_hash = subscription_list.to_redis
+        redis_hash.each do |key, hash|
+          redis.hset(temp_key, key, QueueBus::Util.encode(hash))
+        end
 
-      # make it the real one
-      ::QueueBus.redis { |redis| redis.rename(temp_key, redis_key) }
-      ::QueueBus.redis { |redis| redis.sadd(self.class.app_list_key, app_key) }
+        # make it the real one
+        redis.rename(temp_key, redis_key)
+        redis.sadd(self.class.app_list_key, app_key)
 
-      if log
-        puts ::QueueBus.redis { |redis| redis.hgetall(redis_key).inspect }
+        if log
+          redis.hgetall(redis_key).inspect
+        end
       end
 
       true
@@ -47,8 +49,10 @@ module QueueBus
 
     def unsubscribe
       # TODO: clean up known queues?
-      ::QueueBus.redis { |redis| redis.srem(self.class.app_list_key, app_key) }
-      ::QueueBus.redis { |redis| redis.del(redis_key) }
+      ::QueueBus.redis do |redis|
+        redis.srem(self.class.app_list_key, app_key)
+        redis.del(redis_key)
+      end
     end
 
     def no_connect_queue_names_for(subscriptions)

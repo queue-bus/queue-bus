@@ -16,19 +16,21 @@ module QueueBus
         now = Time.now.to_i
         timeout = now + lock_seconds + 2
 
-        # return true if we successfully acquired the lock
-        return timeout if ::QueueBus.redis { |redis| redis.setnx(lock_key, timeout) }
+        ::QueueBus.redis do |redis|
+          # return true if we successfully acquired the lock
+          return timeout if redis.setnx(lock_key, timeout)
 
-        # see if the existing timeout is still valid and return false if it is
-        # (we cannot acquire the lock during the timeout period)
-        return 0 if now <= ::QueueBus.redis { |redis| redis.get(lock_key) }.to_i
+          # see if the existing timeout is still valid and return false if it is
+          # (we cannot acquire the lock during the timeout period)
+          return 0 if now <= redis.get(lock_key).to_i
 
-        # otherwise set the timeout and ensure that no other worker has
-        # acquired the lock
-        if now > ::QueueBus.redis { |redis| redis.getset(lock_key, timeout) }.to_i
-          return timeout
-        else
-          return 0
+          # otherwise set the timeout and ensure that no other worker has
+          # acquired the lock
+          if now > redis.getset(lock_key, timeout).to_i
+            return timeout
+          else
+            return 0
+          end
         end
       end
 
