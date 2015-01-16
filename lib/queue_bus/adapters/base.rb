@@ -33,9 +33,8 @@ module QueueBus
         raise NotImplementedError
       end
 
-      def subscriber_includes(base)
-        # optional method for including more modules in classes that
-        # include ::QueueBus::Subscriber
+      def worker_included(base)
+        # optional method for including more modules in classes that work in the queue
       end
     end
   end

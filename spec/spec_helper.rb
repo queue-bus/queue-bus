@@ -2,6 +2,8 @@ require 'timecop'
 require 'queue-bus'
 require 'adapter/support'
 
+reset_test_adapter
+
 module QueueBus
   class Runner
     def self.value

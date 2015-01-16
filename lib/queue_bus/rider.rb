@@ -1,6 +1,8 @@
 module QueueBus
   # queue'd in each
-  class Rider < ::QueueBus::Worker
+  class Rider
+    include ::QueueBus::Worker
+    
     class << self
       def perform(attributes = {})
         sub_key = attributes["bus_rider_sub_key"]

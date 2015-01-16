@@ -1,6 +1,7 @@
 module QueueBus
   # publishes event about the current time
-  class Heartbeat < ::QueueBus::Worker
+  class Heartbeat
+    include ::QueueBus::Worker
 
     class << self
 

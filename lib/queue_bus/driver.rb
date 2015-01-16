@@ -1,6 +1,7 @@
 module QueueBus
   # fans out an event to multiple queues
-  class Driver < ::QueueBus::Worker
+  class Driver
+    include ::QueueBus::Worker
 
     class << self
       def subscription_matches(attributes)

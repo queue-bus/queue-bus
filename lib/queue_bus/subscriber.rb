@@ -2,13 +2,8 @@ module QueueBus
   module Subscriber
 
     def self.included(base)
+      base.send(:include, ::QueueBus::Worker)
       base.extend ClassMethods
-      ::QueueBus.adapter.subscriber_includes(base)
-    end
-
-    def perform(*args)
-      # instance method level support for sidekiq
-      self.class.perform(*args)
     end
 
     module ClassMethods

@@ -234,6 +234,10 @@ require 'spec_helper'
       QueueBus.redis { |redis| redis.lpop("queue:myqueue") }.should be_nil
     end
 
+    it "should have gotten the perform method from the ::Worker" do
+      SubscriberTest1.instance_methods.should include(:perform)
+    end
+
     describe ".perform" do
       let(:attributes) { {"bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_locale" => "en", "bus_timezone" => "PST"} }
       it "should call the method based on key" do

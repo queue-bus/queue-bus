@@ -1,12 +1,14 @@
 module QueueBus
-  class Worker
-    # all our workers extend this one
-    module InstanceMethods
-      def perform(*args)
-        # instance method level support for sidekiq
-        self.class.perform(*args)
-      end
+  module Worker
+
+    def self.included(base)
+      ::QueueBus.adapter.worker_included(base)
     end
-    include InstanceMethods
+
+    # all our workers include this one
+    def perform(*args)
+      # instance method level support for sidekiq
+      self.class.perform(*args)
+    end
   end
 end

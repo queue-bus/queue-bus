@@ -1,8 +1,11 @@
 module QueueBus
   # publishes on a delay
-  class Publisher < ::QueueBus::Worker
+  class Publisher
+    include ::QueueBus::Worker
+
     class << self
       def perform(*args)
+        # TODO: move this to just resquebus for fallback
         if args.size > 1
           # handles older arguments
           event_type = args.first
