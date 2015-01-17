@@ -7,7 +7,7 @@ This gem uses Redis and Resque to allow simple asynchronous communication betwee
 To install, include the 'resque-bus' gem and add the following to your Rakefile:
 
 ```ruby
-require "resque_bus/tasks"
+require "queue_bus/tasks"
 ```
 
 ### Example
@@ -19,10 +19,10 @@ Application A can publish an event
 Resque.redis = "192.168.1.1:6379"
 
 # business logic
-ResqueBus.publish("user_created", "id" => 42, "first_name" => "John", "last_name" => "Smith")
+QueueBus.publish("user_created", "id" => 42, "first_name" => "John", "last_name" => "Smith")
 
 # or do it later
-ResqueBus.publish_at(1.hour.from_now, "user_created", "id" => 42, "first_name" => "John", "last_name" => "Smith")
+QueueBus.publish_at(1.hour.from_now, "user_created", "id" => 42, "first_name" => "John", "last_name" => "Smith")
 ```
 
 Application B is subscribed to events
@@ -32,7 +32,7 @@ Application B is subscribed to events
 Resque.redis = "192.168.1.1:6379"
 
 # initializer
-ResqueBus.dispatch("app_b") do
+QueueBus.dispatch("app_b") do
   # processes event on app_b_default queue
   # subscribe is short-hand to subscribe to your 'default' queue and this block with process events with the name "user_created"
   subscribe "user_created" do |attributes|
@@ -65,7 +65,7 @@ Applications can also subscribe within classes using the provided `Subscriber` m
 
 ```ruby
 class SimpleSubscriber
-  include ResqueBus::Subscriber
+  include QueueBus::Subscriber
   subscribe :my_method
 
   def my_method(attributes)
@@ -78,7 +78,7 @@ The following is equivalent to the original initializer and shows more options:
 
 ```ruby
 class OtherSubscriber
-  include ResqueBus::Subscriber
+  include QueueBus::Subscriber
   application :app_b
 
   subscribe :user_created
@@ -126,11 +126,11 @@ If you want retry to work for subscribing apps, you should run resque-scheduler
 
 ### Adapters
 
-ResqueBus now supports multiple adapters! By default ResqueBus uses Resque but you can now configure your application to use Sidekiq to drive and subscribe the bus.
+QueueBus now supports multiple adapters! By default QueueBus uses Resque but you can now configure your application to use Sidekiq to drive and subscribe the bus.
 
-First be sure to configure ResqueBus to use Sidekiq early in your applications' initialization cycle:
+First be sure to configure QueueBus to use Sidekiq early in your applications' initialization cycle:
 ```
-ResqueBus.adapter = 'Sidekiq'
+QueueBus.adapter = 'Sidekiq'
 ```
 You will be responsible for setting up the queues for your Sidekiq clients however you can get the appropriate queue names with the following tasks:
 For driving applications:
@@ -161,7 +161,7 @@ It uses resque-scheduler to trigger the events. You can enable it in your Rakefi
 # resque.rake
 namespace :resque do
   task :setup => [:environment] do
-    ResqueBus.heartbeat!
+    QueueBus.heartbeat!
   end
 end
 ```
@@ -171,8 +171,8 @@ Or add it to your `schedule.yml` directly
 ```yaml
 resquebus_heartbeat:
   cron: "* * * * *"
-  class: "::ResqueBus::Heartbeat"
-  queue: resquebus_incoming
+  class: "::QueueBus::Heartbeat"
+  queue: bus_incoming
   description: "I publish a heartbeat_minutes event every minute"
 ```
 
@@ -189,7 +189,7 @@ attributes = {}
 
 now = Time.now
 seconds = now.to_i
-ResqueBus.publish("hearbeat_minutes", {
+QueueBus.publish("hearbeat_minutes", {
   "epoch_seconds" => seconds,
   "epoch_minutes" => seconds / 1.minute,
   "epoch_hours"   => seconds / 1.hour,
@@ -207,7 +207,7 @@ ResqueBus.publish("hearbeat_minutes", {
 This allows you do something like this:
 
 ```ruby
-ResqueBus.dispatch("app_c") do
+QueueBus.dispatch("app_c") do
   # runs at 10:20, 11:20, etc
   subscribe "once_an_hour", 'bus_event_type' => 'heartbeat_minutes', 'minute' => 20 do |attributes|
     Sitemap.generate!
@@ -233,9 +233,9 @@ For development, a local mode is provided and is specified in the configuration.
 
 ```ruby
 # config
-ResqueBus.local_mode = :standalone
+QueueBus.local_mode = :standalone
 or
-ResqueBus.local_mode = :inline
+QueueBus.local_mode = :inline
 ```
 
 Standalone mode does not require a separate resquebus:driver task to be running to process the
@@ -246,7 +246,7 @@ still need to be run to process these events
 Inline mode skips queue processing entirely and directly dispatches the
 event to the appropriate code block.
 
-You can also say `ResqueBus.local_mode = :suppress` to turn off publishing altogether.
+You can also say `QueueBus.local_mode = :suppress` to turn off publishing altogether.
 This can be helpful inside some sort of migration, for example.
 
 ### TODO

@@ -1,9 +1,10 @@
 require 'timecop'
-require 'resque-bus'
-require 'resque'
-require 'resque/scheduler'
+require 'queue-bus'
+require 'adapter/support'
 
-module ResqueBus
+reset_test_adapter
+
+module QueueBus
   class Runner
     def self.value
       @value ||= 0
@@ -32,40 +33,32 @@ module ResqueBus
   end
 end
 
-def perform_next_job(worker, &block)
-  return unless job = @worker.reserve
-  @worker.perform(job, &block)
-  @worker.done_working
-end
-
 def test_sub(event_name, queue="default")
   matcher = {"bus_event_type" => event_name}
-  ResqueBus::Subscription.new(queue, event_name, "::ResqueBus::Rider", matcher, nil)
+  QueueBus::Subscription.new(queue, event_name, "::QueueBus::Rider", matcher, nil)
 end
 
 def test_list(*args)
-  out = ResqueBus::SubscriptionList.new
+  out = QueueBus::SubscriptionList.new
   args.each do |sub|
     out.add(sub)
   end
   out
 end
 
-Resque::Scheduler.mute = true
-
 RSpec.configure do |config|
   config.mock_framework = :rspec
 
   config.before(:each) do
-    ResqueBus.send(:reset)
+    reset_test_adapter
   end
   config.after(:each) do
     begin
-      ResqueBus.redis { |redis| redis.flushall }
+      QueueBus.redis { |redis| redis.flushall }
     rescue
     end
-    ResqueBus.send(:reset)
-    ResqueBus::Runner1.reset
-    ResqueBus::Runner2.reset
+    QueueBus.send(:reset)
+    QueueBus::Runner1.reset
+    QueueBus::Runner2.reset
   end
 end

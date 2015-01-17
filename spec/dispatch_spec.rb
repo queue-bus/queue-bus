@@ -1,6 +1,6 @@
 require 'spec_helper' 
 
-module ResqueBus
+module QueueBus
   describe Dispatch do
     it "should not start with any applications" do
       Dispatch.new("d").subscriptions.size.should == 0
@@ -29,7 +29,7 @@ module ResqueBus
     
     describe "Top Level" do
       before(:each) do
-         ResqueBus.dispatch("testit") do
+         QueueBus.dispatch("testit") do
            subscribe "event1" do |attributes|
              Runner2.run(attributes)
            end
@@ -50,16 +50,16 @@ module ResqueBus
        
       it "should register and run" do
         Runner2.value.should == 0
-        ResqueBus.dispatcher_execute("testit", "event2", "bus_event_type" => "event2")
+        QueueBus.dispatcher_execute("testit", "event2", "bus_event_type" => "event2")
         Runner2.value.should == 1
-        ResqueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
+        QueueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
         Runner2.value.should == 2
-        ResqueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
+        QueueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
         Runner2.value.should == 3
       end
       
       it "should return the subscriptions" do
-        dispatcher = ResqueBus.dispatcher_by_key("testit")
+        dispatcher = QueueBus.dispatcher_by_key("testit")
         subs = dispatcher.subscriptions.all
         tuples = subs.collect{ |sub| [sub.key, sub.queue_name]}
         tuples.should =~ [  ["event1", "testit_default"],
