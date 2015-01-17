@@ -47,7 +47,12 @@ def test_list(*args)
 end
 
 RSpec.configure do |config|
-  config.mock_framework = :rspec
+  config.mock_with :rspec do |c|
+    c.syntax = :should
+  end
+  config.expect_with :rspec do |c|
+    c.syntax = :should
+  end
 
   config.before(:each) do
     reset_test_adapter
