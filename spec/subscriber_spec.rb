@@ -192,25 +192,34 @@ require 'spec_helper'
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "event_sub"))
       QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
 
-      hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
-      hash["class"].should == "SubscriberTest1"
-      hash["args"].first.should eq({"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      pop1 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
+      pop2 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
+
+      if pop1["args"].first["bus_rider_sub_key"] == "SubscriberTest1.thing_filter"
+        hash1 = pop1
+        hash2 = pop2
+      else
+        hash1 = pop2
+        hash2 = pop1
+      end
+
+      hash1["class"].should == "SubscriberTest1"
+      hash1["args"].first.should eq({"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs))
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
+      QueueBus::Util.constantize(hash1["class"]).perform(*hash1["args"])
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 1
 
-      hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
-      hash["class"].should == "SubscriberTest1"
-      hash["args"].should == [ {"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      hash2["class"].should == "SubscriberTest1"
+      hash2["args"].should == [ {"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 1
-      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
+      QueueBus::Util.constantize(hash2["class"]).perform(*hash2["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 1
 

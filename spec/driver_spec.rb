@@ -78,13 +78,22 @@ module QueueBus
 
         QueueBus.redis { |redis| redis.llen("queue:default") }.should == 2
 
-        hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
-        hash["class"].should == "::QueueBus::Rider"
-        hash["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event5", "bus_rider_queue" => "default"}.merge(bus_attrs)
+        pop1 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
+        pop2 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
 
-        hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
-        hash["class"].should == "::QueueBus::Rider"
-        hash["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs)
+        if pop1["args"][0]["bus_rider_sub_key"] == "event5"
+          hash1 = pop1
+          hash2 = pop2
+        else
+          hash1 = pop2
+          hash2 = pop1
+        end
+
+        hash1["class"].should == "::QueueBus::Rider"
+        hash1["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event5", "bus_rider_queue" => "default"}.merge(bus_attrs)
+
+        hash2["class"].should == "::QueueBus::Rider"
+        hash2["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs)
       end
     end
   end
