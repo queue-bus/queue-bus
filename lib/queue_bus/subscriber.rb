@@ -2,7 +2,6 @@ module QueueBus
   module Subscriber
 
     def self.included(base)
-      base.send(:include, ::QueueBus::Worker)
       base.extend ClassMethods
     end
 

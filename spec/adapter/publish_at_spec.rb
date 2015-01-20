@@ -9,7 +9,8 @@ describe "Publishing an event in the future" do
   after(:each) do
     Timecop.return
   end
-  let(:delayed_attrs) { {"bus_delayed_until" => future.to_i,
+  let(:delayed_attrs) { {
+                     "bus_delayed_until" => future.to_i,
                      "bus_id" => "#{now.to_i}-idfhlkj",
                      "bus_app_hostname" =>  `hostname 2>&1`.strip.sub(/.local/,'')} }
 
@@ -29,8 +30,8 @@ describe "Publishing an event in the future" do
     val = QueueBus.redis { |redis| redis.lpop("delayed:#{future.to_i}") }
     hash = JSON.parse(val)
 
-    hash["class"].should == "QueueBus::Publisher"
-    hash["args"].should == [ {"bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs) ]
+    hash["class"].should == "QueueBus::Worker"
+    hash["args"].should == [ {"bus_class_proxy"=>"QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs) ]
     hash["queue"].should == "bus_incoming"
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
@@ -41,8 +42,8 @@ describe "Publishing an event in the future" do
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
-    hash["class"].should == "QueueBus::Driver"
-    hash["args"].should == [ {"bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs) ]
+    hash["class"].should == "QueueBus::Worker"
+    hash["args"].should == [ {"bus_class_proxy"=>"QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs) ]
   end
 
 end

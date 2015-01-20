@@ -13,10 +13,15 @@ module QueueBus
 
         # looking for subscriptions, not queues
         subscription_matches(attributes).each do |sub|
-           bus_attr = {"bus_driven_at" => Time.now.to_i, "bus_rider_queue" => sub.queue_name, "bus_rider_app_key" => sub.app_key, "bus_rider_sub_key" => sub.key, "bus_rider_class_name" => sub.class_name}
+          bus_attr = {  "bus_driven_at" => Time.now.to_i,
+                        "bus_rider_queue" => sub.queue_name,
+                        "bus_rider_app_key" => sub.app_key,
+                        "bus_rider_sub_key" => sub.key,
+                        "bus_rider_class_name" => sub.class_name,
+                        "bus_class_proxy" => sub.class_name}
           to_publish = bus_attr.merge(attributes || {})
           if ::QueueBus.local_mode == :standalone
-            ::QueueBus.enqueue_to(sub.queue_name, sub.class_name, bus_attr.merge(attributes || {}))
+            ::QueueBus.enqueue_to(sub.queue_name, ::QueueBus::Worker, bus_attr.merge(attributes || {}))
           else  # defaults to inline mode
             sub.execute!(to_publish)
           end

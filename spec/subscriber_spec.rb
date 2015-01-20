@@ -89,8 +89,8 @@ require 'spec_helper'
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "something2", "value"=>"nice"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:test2_default") })
-      hash["class"].should == "SubscriberTest2"
-      hash["args"].should eq [ {"bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
+      hash["class"].should == "QueueBus::Worker"
+      hash["args"].should eq [ {"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
                                "bus_event_type" => "something2", "value"=>"nice", "x"=>"y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 0
@@ -105,8 +105,8 @@ require 'spec_helper'
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "something2", "value"=>"12"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:test2_default") })
-      hash["class"].should == "SubscriberTest2"
-      hash["args"].should == [ {"bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
+      hash["class"].should == "QueueBus::Worker"
+      hash["args"].should == [ {"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
                                "bus_event_type" => "something2", "value"=>"12", "x"=>"y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 1
@@ -151,8 +151,8 @@ require 'spec_helper'
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "the_event"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:sub_queue1") })
-      hash["class"].should == "SubModule::SubscriberTest3"
-      hash["args"].should == [ {"bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.test3", "bus_rider_queue" => "sub_queue1", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
+      hash["class"].should == "QueueBus::Worker"
+      hash["args"].should == [ {"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.test3", "bus_rider_queue" => "sub_queue1", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
                                 "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 0
@@ -162,8 +162,8 @@ require 'spec_helper'
       QueueBus::Runner2.value.should == 0
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:sub_queue2") })
-      hash["class"].should == "SubModule::SubscriberTest3"
-      hash["args"].should == [ {"bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.the_event", "bus_rider_queue" => "sub_queue2", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
+      hash["class"].should == "QueueBus::Worker"
+      hash["args"].should == [ {"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.the_event", "bus_rider_queue" => "sub_queue2", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
                                 "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 1
@@ -203,8 +203,8 @@ require 'spec_helper'
         hash2 = pop1
       end
 
-      hash1["class"].should == "SubscriberTest1"
-      hash1["args"].first.should eq({"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      hash1["class"].should == "QueueBus::Worker"
+      hash1["args"].first.should eq({"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs))
 
       QueueBus::Runner1.value.should == 0
@@ -213,8 +213,8 @@ require 'spec_helper'
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 1
 
-      hash2["class"].should == "SubscriberTest1"
-      hash2["args"].should == [ {"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      hash2["class"].should == "QueueBus::Worker"
+      hash2["args"].should == [ {"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 0
@@ -227,8 +227,8 @@ require 'spec_helper'
       QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
-      hash["class"].should == "SubscriberTest1"
-      hash["args"].should == [ {"bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      hash["class"].should == "QueueBus::Worker"
+      hash["args"].should == [ {"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub_other", "x" => "y"}.merge(bus_attrs) ]
 
       QueueBus::Runner1.value.should == 1
@@ -241,10 +241,6 @@ require 'spec_helper'
       QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
 
       QueueBus.redis { |redis| redis.lpop("queue:myqueue") }.should be_nil
-    end
-
-    it "should have gotten the perform method from the ::Worker" do
-      SubscriberTest1.instance_methods.should include(:perform)
     end
 
     describe ".perform" do
