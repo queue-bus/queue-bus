@@ -31,19 +31,21 @@ describe "Publishing an event in the future" do
     hash = JSON.parse(val)
 
     hash["class"].should == "QueueBus::Worker"
-    hash["args"].should == [ {"bus_class_proxy"=>"QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs) ]
+    hash["args"].size.should == 1
+    JSON.parse(hash["args"].first).should == {"bus_class_proxy"=>"QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs)
     hash["queue"].should == "bus_incoming"
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     val.should == nil # nothing really added
 
     Timecop.freeze(worktime)
-    QueueBus::Publisher.perform(*hash["args"])
+    QueueBus::Publisher.perform(JSON.parse(hash["args"].first))
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
     hash["class"].should == "QueueBus::Worker"
-    hash["args"].should == [ {"bus_class_proxy"=>"QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs) ]
+    hash["args"].size.should == 1
+    JSON.parse(hash["args"].first).should == {"bus_class_proxy"=>"QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs)
   end
 
 end

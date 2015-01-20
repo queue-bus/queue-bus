@@ -15,12 +15,12 @@ module QueueBus
         block.call(@redis)
       end
 
-      def enqueue(queue_name, klass, hash)
-        push(queue_name, :class => klass.to_s, :args => [hash])
+      def enqueue(queue_name, klass, json)
+        push(queue_name, :class => klass.to_s, :args => [json])
       end
 
-      def enqueue_at(epoch_seconds, queue_name, klass, hash)
-        item = delayed_job_to_hash_with_queue(queue_name, klass, [hash])
+      def enqueue_at(epoch_seconds, queue_name, klass, json)
+        item = delayed_job_to_hash_with_queue(queue_name, klass, [json])
         delayed_push(epoch_seconds, item)
       end
 

@@ -26,7 +26,8 @@ describe "Publishing an event" do
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
     hash["class"].should == "QueueBus::Worker"
-    hash["args"].should == [ {"bus_event_type" => event_name, "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs) ]
+    hash["args"].size.should == 1
+    JSON.parse(hash["args"].first).should == {"bus_event_type" => event_name, "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs)
 
   end
 
@@ -42,7 +43,8 @@ describe "Publishing an event" do
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
     hash["class"].should == "QueueBus::Worker"
-    hash["args"].should == [ {"bus_event_type" => event_name, "two"=>"here", "one"=>1}.merge(bus_attrs).merge("bus_id" => 'app-given') ]
+    hash["args"].size.should == 1
+    JSON.parse(hash["args"].first).should == {"bus_event_type" => event_name, "two"=>"here", "one"=>1}.merge(bus_attrs).merge("bus_id" => 'app-given')
   end
 
   it "should add metadata via callback" do
@@ -63,7 +65,7 @@ describe "Publishing an event" do
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
-    att = hash["args"].first
+    att = JSON.parse(hash["args"].first)
     att["mine"].should == 4
     myval.should == 1
   end
@@ -88,7 +90,7 @@ describe "Publishing an event" do
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
     hash["class"].should == "QueueBus::Worker"
-    att = hash["args"].first
+    att = JSON.parse(hash["args"].first)
     att["bus_locale"].should == "jp"
     att["bus_timezone"].should == "EST"
   end

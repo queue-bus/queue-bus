@@ -69,11 +69,11 @@ module QueueBus
     end
 
     def enqueue_to(queue_name, klass, hash)
-      ::QueueBus.adapter.enqueue(queue_name, klass, hash)
+      ::QueueBus.adapter.enqueue(queue_name, klass, ::QueueBus::Util.encode(hash || {}))
     end
 
     def delayed_enqueue_to(epoch_seconds, queue_name, klass, hash)
-      ::QueueBus.adapter.enqueue_at(epoch_seconds, queue_name, klass, hash)
+      ::QueueBus.adapter.enqueue_at(epoch_seconds, queue_name, klass, ::QueueBus::Util.encode(hash || {}))
     end
 
     def heartbeat!

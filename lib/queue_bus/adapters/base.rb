@@ -19,12 +19,12 @@ module QueueBus
         raise NotImplementedError
       end
 
-      def enqueue(queue_name, klass, hash)
+      def enqueue(queue_name, klass, json)
         # enqueue the given class (Driver/Rider) in your queue
         raise NotImplementedError
       end
 
-      def enqueue_at(epoch_seconds, queue_name, klass, hash)
+      def enqueue_at(epoch_seconds, queue_name, klass, json)
         # enqueue the given class (Publisher) in your queue to run at given time
         raise NotImplementedError
       end
