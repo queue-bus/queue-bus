@@ -10,6 +10,7 @@ module QueueBus
       def enabled!
         # called the first time we know we are using this adapter
         # it would be a good spot to require the libraries you're using
+        # and modify QueueBus::Worker as needed
         raise NotImplementedError
       end
 
@@ -18,12 +19,12 @@ module QueueBus
         raise NotImplementedError
       end
 
-      def enqueue(queue_name, klass, hash)
+      def enqueue(queue_name, klass, json)
         # enqueue the given class (Driver/Rider) in your queue
         raise NotImplementedError
       end
 
-      def enqueue_at(epoch_seconds, queue_name, klass, hash)
+      def enqueue_at(epoch_seconds, queue_name, klass, json)
         # enqueue the given class (Publisher) in your queue to run at given time
         raise NotImplementedError
       end
@@ -31,10 +32,6 @@ module QueueBus
       def setup_heartbeat!
         # if possible, tell a recurring job system to publish every minute
         raise NotImplementedError
-      end
-
-      def worker_included(base)
-        # optional method for including more modules in classes that work in the queue
       end
     end
   end

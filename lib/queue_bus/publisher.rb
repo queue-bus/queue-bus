@@ -1,7 +1,6 @@
 module QueueBus
   # publishes on a delay
   class Publisher
-    include ::QueueBus::Worker
 
     class << self
       def perform(*args)

@@ -48,11 +48,13 @@ module QueueBus
 
     def publish(event_type, attributes = {})
       to_publish = publish_metadata(event_type, attributes)
+      to_publish["bus_class_proxy"] = ::QueueBus::Driver.name.to_s
+
       ::QueueBus.log_application("Event published: #{event_type} #{to_publish.inspect}")
       if local_mode
         ::QueueBus::Local.perform(to_publish)
       else
-        enqueue_to(::QueueBus.incoming_queue, Driver, to_publish)
+        enqueue_to(::QueueBus.incoming_queue, ::QueueBus::Worker, to_publish)
       end
     end
 
@@ -60,17 +62,18 @@ module QueueBus
       to_publish = publish_metadata(event_type, attributes)
       to_publish["bus_delayed_until"] ||= timestamp_or_epoch.to_i
       to_publish.delete("bus_published_at") unless attributes["bus_published_at"] # will be put on when it actually does it
+      to_publish["bus_class_proxy"] = ::QueueBus::Publisher.name.to_s
 
       ::QueueBus.log_application("Event published:#{event_type} #{to_publish.inspect} publish_at: #{timestamp_or_epoch.to_i}")
-      delayed_enqueue_to(timestamp_or_epoch.to_i, incoming_queue, Publisher, to_publish)
+      delayed_enqueue_to(timestamp_or_epoch.to_i, incoming_queue, ::QueueBus::Worker, to_publish)
     end
 
     def enqueue_to(queue_name, klass, hash)
-      ::QueueBus.adapter.enqueue(queue_name, klass, hash)
+      ::QueueBus.adapter.enqueue(queue_name, klass, ::QueueBus::Util.encode(hash || {}))
     end
 
     def delayed_enqueue_to(epoch_seconds, queue_name, klass, hash)
-      ::QueueBus.adapter.enqueue_at(epoch_seconds, queue_name, klass, hash)
+      ::QueueBus.adapter.enqueue_at(epoch_seconds, queue_name, klass, ::QueueBus::Util.encode(hash || {}))
     end
 
     def heartbeat!

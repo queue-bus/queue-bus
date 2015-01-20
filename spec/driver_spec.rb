@@ -12,7 +12,7 @@ module QueueBus
       Timecop.return
     end
 
-    let(:bus_attrs) { {"bus_driven_at" => Time.now.to_i, "bus_rider_class_name"=>"::QueueBus::Rider"} }
+    let(:bus_attrs) { {"bus_driven_at" => Time.now.to_i, "bus_rider_class_name"=>"::QueueBus::Rider", "bus_class_proxy" => "::QueueBus::Rider"} }
 
     describe ".subscription_matches" do
       it "return empty array when none" do
@@ -35,7 +35,7 @@ module QueueBus
     end
 
     describe ".perform" do
-      let(:attributes) { {"x" => "y"} }
+      let(:attributes) { {"x" => "y", "bus_class_proxy" => "ResqueBus::Driver"} }
 
       before(:each) do
         QueueBus.redis { |redis| redis.smembers("queues") }.should == []
@@ -55,8 +55,9 @@ module QueueBus
         QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["default"]
 
         hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
-        hash["class"].should == "::QueueBus::Rider"
-        hash["args"].should == [ {"bus_rider_app_key"=>"app1", "x" => "y", "bus_event_type" => "event1", "bus_rider_sub_key"=>"event1", "bus_rider_queue" => "default"}.merge(bus_attrs) ]
+        hash["class"].should == "QueueBus::Worker"
+        hash["args"].size.should == 1
+        JSON.parse(hash["args"].first).should == {"bus_rider_app_key"=>"app1", "x" => "y", "bus_event_type" => "event1", "bus_rider_sub_key"=>"event1", "bus_rider_queue" => "default"}.merge(bus_attrs)
       end
 
       it "should queue up to multiple" do
@@ -64,12 +65,14 @@ module QueueBus
         QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["default", "more"]
 
         hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:more") })
-        hash["class"].should == "::QueueBus::Rider"
-        hash["args"].should == [ {"bus_rider_app_key"=>"app2", "x" => "y", "bus_event_type" => "event4", "bus_rider_sub_key"=>"event4", "bus_rider_queue" => "more"}.merge(bus_attrs) ]
+        hash["class"].should == "QueueBus::Worker"
+        hash["args"].size.should == 1
+        JSON.parse(hash["args"].first).should == {"bus_rider_app_key"=>"app2", "x" => "y", "bus_event_type" => "event4", "bus_rider_sub_key"=>"event4", "bus_rider_queue" => "more"}.merge(bus_attrs)
 
         hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
-        hash["class"].should == "::QueueBus::Rider"
-        hash["args"].should == [ {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event4", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs) ]
+        hash["class"].should == "QueueBus::Worker"
+        hash["args"].size.should == 1
+        JSON.parse(hash["args"].first).should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event4", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs)
       end
 
       it "should queue up to the same" do
@@ -81,19 +84,25 @@ module QueueBus
         pop1 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
         pop2 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:default") })
 
-        if pop1["args"][0]["bus_rider_sub_key"] == "event5"
+        pargs1 = JSON.parse(pop1["args"].first)
+        pargs2 = JSON.parse(pop2["args"].first)
+        if pargs1["bus_rider_sub_key"] == "event5"
           hash1 = pop1
           hash2 = pop2
+          args1 = pargs1
+          args2 = pargs2
         else
           hash1 = pop2
           hash2 = pop1
+          args1 = pargs2
+          args2 = pargs2
         end
 
-        hash1["class"].should == "::QueueBus::Rider"
-        hash1["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event5", "bus_rider_queue" => "default"}.merge(bus_attrs)
+        hash1["class"].should == "QueueBus::Worker"
+        args1.should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event5", "bus_rider_queue" => "default"}.merge(bus_attrs)
 
-        hash2["class"].should == "::QueueBus::Rider"
-        hash2["args"][0].should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs)
+        hash2["class"].should == "QueueBus::Worker"
+        args2.should == {"bus_rider_app_key"=>"app3", "x" => "y", "bus_event_type" => "event5", "bus_rider_sub_key"=>"event[45]", "bus_rider_queue" => "default"}.merge(bus_attrs)
       end
     end
   end
