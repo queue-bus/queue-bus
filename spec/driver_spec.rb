@@ -95,7 +95,7 @@ module QueueBus
           hash1 = pop2
           hash2 = pop1
           args1 = pargs2
-          args2 = pargs2
+          args2 = pargs1
         end
 
         hash1["class"].should == "QueueBus::Worker"

@@ -199,7 +199,7 @@ require 'spec_helper'
       pop1 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
       pop2 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
 
-      if pop1["args"].first["bus_rider_sub_key"] == "SubscriberTest1.thing_filter"
+      if JSON.parse(pop1["args"].first)["bus_rider_sub_key"] == "SubscriberTest1.thing_filter"
         hash1 = pop1
         hash2 = pop2
       else
