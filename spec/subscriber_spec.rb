@@ -96,7 +96,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash["class"]).perform(JSON.parse(hash["args"].first))
+      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 0
 
@@ -113,7 +113,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash["class"]).perform(JSON.parse(hash["args"].first))
+      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
       QueueBus::Runner1.value.should == 2
       QueueBus::Runner2.value.should == 0
 
@@ -160,7 +160,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash["class"]).perform(JSON.parse(hash["args"].first))
+      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 0
 
@@ -172,7 +172,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash["class"]).perform(JSON.parse(hash["args"].first))
+      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 1
     end
@@ -213,7 +213,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 0
-      QueueBus::Util.constantize(hash1["class"]).perform(JSON.parse(hash1["args"].first))
+      QueueBus::Util.constantize(hash1["class"]).perform(*hash1["args"])
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 1
 
@@ -224,7 +224,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 0
       QueueBus::Runner2.value.should == 1
-      QueueBus::Util.constantize(hash2["class"]).perform(JSON.parse(hash2["args"].first))
+      QueueBus::Util.constantize(hash2["class"]).perform(*hash2["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 1
 
@@ -239,7 +239,7 @@ require 'spec_helper'
 
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 1
-      QueueBus::Util.constantize(hash["class"]).perform(JSON.parse(hash["args"].first))
+      QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
       QueueBus::Runner1.value.should == 1
       QueueBus::Runner2.value.should == 2
 

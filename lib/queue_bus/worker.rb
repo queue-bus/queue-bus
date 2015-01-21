@@ -1,8 +1,9 @@
 module QueueBus
   class Worker
 
-    def self.perform(attributes)
+    def self.perform(json)
       klass = nil
+      attributes = ::QueueBus::Util.decode(json)
       begin
         class_name = attributes["bus_class_proxy"]
         klass = ::QueueBus::Util.constantize(class_name)
@@ -15,9 +16,9 @@ module QueueBus
     end
 
     # all our workers include this one
-    def perform(attributes)
+    def perform(json)
       # instance method level support for sidekiq
-      self.class.perform(attributes)
+      self.class.perform(json)
     end
   end
 end
