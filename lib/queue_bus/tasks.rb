@@ -17,6 +17,13 @@ namespace :queuebus do
     puts "No subscriptions unsubscribed" if count == 0
   end
 
+  desc "List QueueBus queues that need worked"
+  task :queues => [ :preload ] do
+    manager = ResqueBus::TaskManager.new(false)
+    queues = manager.queue_names + ['bus_incoming']
+    puts queues.join(", ")
+  end
+
   # Preload app files if this is Rails
   # you can also do this to load the right things
   task :preload do
