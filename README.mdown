@@ -1,13 +1,18 @@
-## Resque Bus
+## Queue Bus
 
-This gem uses Redis and Resque to allow simple asynchronous communication between apps.
+This gem uses Redis and background queues that you are already using to allow simple asynchronous communication between apps.
 
 ### Install
 
-To install, include the 'resque-bus' gem and add the following to your Rakefile:
+To install, pick one of the adapters and add it to your Gemfile:
+
+* [resque-bus](https://github.com/queue-bus/resque-bus)
+* [sidekiq-bus](https://github.com/queue-bus/sidekiq-bus)
+
+And add the appropriate tasks to your Rakefile:
 
 ```ruby
-require "queue_bus/tasks"
+require "resque_bus/tasks" # or sidekiq_bus/tasks
 ```
 
 ### Example
@@ -15,8 +20,8 @@ require "queue_bus/tasks"
 Application A can publish an event
 
 ```ruby
-# config
-Resque.redis = "192.168.1.1:6379"
+# pick an adapter
+require 'resque-bus' # (or other adapter)
 
 # business logic
 QueueBus.publish("user_created", "id" => 42, "first_name" => "John", "last_name" => "Smith")
@@ -28,8 +33,8 @@ QueueBus.publish_at(1.hour.from_now, "user_created", "id" => 42, "first_name" =>
 Application B is subscribed to events
 
 ```ruby
-# config
-Resque.redis = "192.168.1.1:6379"
+# pick an adapter
+require 'resque-bus' # (or other adapter)
 
 # initializer
 QueueBus.dispatch("app_b") do
@@ -110,122 +115,9 @@ Note: This subscribes when this class is loaded, so it needs to be in your load 
 
 Each app needs to tell Redis about its subscriptions:
 
-    $ rake resquebus:subscribe
+    $ rake queuebus:subscribe
 
-The subscription block is run inside a Resque worker which needs to be started for each app.
-
-    $ rake resquebus:setup resque:work
-
-The incoming queue also needs to be processed on a dedicated or all the app servers.
-
-    $ rake resquebus:driver resque:work
-
-If you want retry to work for subscribing apps, you should run resque-scheduler
-
-    $ rake resque:scheduler
-
-### Adapters
-
-QueueBus now supports multiple adapters! By default QueueBus uses Resque but you can now configure your application to use Sidekiq to drive and subscribe the bus.
-
-First be sure to configure QueueBus to use Sidekiq early in your applications' initialization cycle:
-```
-QueueBus.adapter = 'Sidekiq'
-```
-You will be responsible for setting up the queues for your Sidekiq clients however you can get the appropriate queue names with the following tasks:
-For driving applications:
-```
-$ rake resquebus:driver:sidekiq
-```
-For subscribing applications:
-```
-$ rake resquebus:setup:sidekiq
-```
-These tasks will provide the queue_names and some minimal suggestions for starting the client.
-
-Your subscribing applications will still need to also use the appropriate rake task:
-```
-$ rake resquebus:subscribe:sidekiq
-```
-
-At the moment you are expected to include the Sidekiq gem in your own applications.
-
-And yes we are planning on renaming and restructuring the project! Please contact the maintainer if you would like to add a different adapter.
-
-### Heartbeat
-
-We've found it useful to have the bus act like `cron`, triggering timed jobs throughout the system. Resque Bus calls this a heartbeat.
-It uses resque-scheduler to trigger the events. You can enable it in your Rakefile.
-
-```ruby
-# resque.rake
-namespace :resque do
-  task :setup => [:environment] do
-    QueueBus.heartbeat!
-  end
-end
-```
-
-Or add it to your `schedule.yml` directly
-
-```yaml
-resquebus_heartbeat:
-  cron: "* * * * *"
-  class: "::QueueBus::Heartbeat"
-  queue: bus_incoming
-  description: "I publish a heartbeat_minutes event every minute"
-```
-
-It is the equivalent of doing this every minute
-
-```ruby
-seconds = minutes * (60)
-hours   = minutes / (60)
-days    = minutes / (60*24)
-
-now     = Time.at(seconds)
-
-attributes = {}
-
-now = Time.now
-seconds = now.to_i
-QueueBus.publish("hearbeat_minutes", {
-  "epoch_seconds" => seconds,
-  "epoch_minutes" => seconds / 1.minute,
-  "epoch_hours"   => seconds / 1.hour,
-  "epoch_days"    => seconds / 1.day,
-  "minute"        => now.min
-  "hour"          => now.hour
-  "day"           => now.day
-  "month"         => now.month
-  "year"          => now.year
-  "yday"          => now.yday
-  "wday"          => now.wday
-})
-```
-
-This allows you do something like this:
-
-```ruby
-QueueBus.dispatch("app_c") do
-  # runs at 10:20, 11:20, etc
-  subscribe "once_an_hour", 'bus_event_type' => 'heartbeat_minutes', 'minute' => 20 do |attributes|
-    Sitemap.generate!
-  end
-
-  # runs every five minutes
-  subscribe "every_five_minutes", 'bus_event_type' => 'heartbeat_minutes' do |attributes|
-    next unless attributes["epoch_minutes"] % 5 == 0
-    HealthCheck.run!
-  end
-
-  # runs at 8am on the first of every month
-  subscribe "new_month_morning", 'bus_event_type' => 'heartbeat_minutes', 'day' => 1, hour' => 8, 'minute' => 0,  do |attributes|
-    next unless attributes["epoch_minutes"] % 5 == 0
-    Token.old.expire!
-  end
-end
-```
+See the adapter project for detils on running the workers.
 
 ### Local Mode
 
@@ -251,14 +143,8 @@ This can be helpful inside some sort of migration, for example.
 
 ### TODO
 
-* Sidekiq adapter
-* Refactor rake tasks for resque/sidekiq
-* Refactor to a storage adapter for Redis, so we can store subscription info in MySQL or something else
 * Replace local modes with adapters
 * There are a few spots in the code with TODO notes
 * Make this not freak out in development without Redis or when Redis is down
 * We might not actually need to publish in tests
 * Add some rspec helpers for the apps to use: should_ post an event_publish or something along those lines
-* Allow calling resquebus:setup and resquebus:driver together (append to ENV['QUEUES'], don't replace it)
-
-Copyright (c) 2011 Brian Leonard, released under the MIT license
