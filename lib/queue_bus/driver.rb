@@ -26,8 +26,7 @@ module QueueBus
                         "bus_rider_sub_key" => sub.key,
                         "bus_rider_class_name" => sub.class_name}
           bus_attr = bus_attr.merge(attributes || {})
-          bus_attr["bus_class_proxy"] = sub.class_name
-          ::QueueBus.enqueue_to(sub.queue_name, ::QueueBus::Worker, bus_attr)
+          ::QueueBus.enqueue_to(sub.queue_name, sub.class_name, bus_attr)
         end
       end
     end

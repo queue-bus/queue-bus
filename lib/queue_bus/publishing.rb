@@ -48,13 +48,12 @@ module QueueBus
 
     def publish(event_type, attributes = {})
       to_publish = publish_metadata(event_type, attributes)
-      to_publish["bus_class_proxy"] = ::QueueBus::Driver.name.to_s
 
       ::QueueBus.log_application("Event published: #{event_type} #{to_publish.inspect}")
       if local_mode
-        ::QueueBus::Local.perform(to_publish)
+        ::QueueBus::Local.publish(to_publish) # TODO: use different adapters
       else
-        enqueue_to(::QueueBus.incoming_queue, ::QueueBus::Worker, to_publish)
+        enqueue_to(::QueueBus.incoming_queue, ::QueueBus::Driver, to_publish)
       end
     end
 
@@ -68,8 +67,10 @@ module QueueBus
       delayed_enqueue_to(timestamp_or_epoch.to_i, incoming_queue, ::QueueBus::Worker, to_publish)
     end
 
-    def enqueue_to(queue_name, klass, hash)
-      ::QueueBus.adapter.enqueue(queue_name, klass, ::QueueBus::Util.encode(hash || {}))
+    def enqueue_to(queue_name, class_name, hash)
+      class_name = class_name.name if class_name.is_a?(Class)
+      hash = hash.merge("bus_class_proxy" => class_name.to_s)
+      ::QueueBus.adapter.enqueue(queue_name, ::QueueBus::Worker, ::QueueBus::Util.encode(hash || {}))
     end
 
     def delayed_enqueue_to(epoch_seconds, queue_name, klass, hash)

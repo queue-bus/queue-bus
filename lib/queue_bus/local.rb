@@ -3,7 +3,7 @@ module QueueBus
   class Local
 
     class << self
-      def perform(attributes = {})
+      def publish(attributes = {})
         if ::QueueBus.local_mode == :suppress
           ::QueueBus.log_worker("Suppressed: #{attributes.inspect}")
           return  # not doing anything
@@ -17,11 +17,10 @@ module QueueBus
                         "bus_rider_queue" => sub.queue_name,
                         "bus_rider_app_key" => sub.app_key,
                         "bus_rider_sub_key" => sub.key,
-                        "bus_rider_class_name" => sub.class_name,
-                        "bus_class_proxy" => sub.class_name}
+                        "bus_rider_class_name" => sub.class_name}
           to_publish = bus_attr.merge(attributes || {})
           if ::QueueBus.local_mode == :standalone
-            ::QueueBus.enqueue_to(sub.queue_name, ::QueueBus::Worker, bus_attr.merge(attributes || {}))
+            ::QueueBus.enqueue_to(sub.queue_name, sub.class_name, bus_attr.merge(attributes || {}))
           else  # defaults to inline mode
             sub.execute!(to_publish)
           end
