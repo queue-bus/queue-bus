@@ -63,7 +63,7 @@ module QueueBus
         ::QueueBus.redis { |redis| redis.set(redis_key, epoch_minute) }
       end
 
-      def perform
+      def perform(*args)
         real_now = Time.now.to_i
         run_until = lock! - 2
         return if run_until < real_now
