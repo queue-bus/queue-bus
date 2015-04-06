@@ -1,4 +1,5 @@
 require "queue_bus/version"
+require "forwardable"
 
 module QueueBus
 
