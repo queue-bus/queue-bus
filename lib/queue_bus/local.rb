@@ -9,6 +9,10 @@ module QueueBus
           return  # not doing anything
         end
 
+        # To json and back to simlulate enqueueing
+        json = ::QueueBus::Util.encode(attributes)
+        attributes = ::QueueBus::Util.decode(json)
+
         ::QueueBus.log_worker("Local running: #{attributes.inspect}")
 
         # looking for subscriptions, not queues
