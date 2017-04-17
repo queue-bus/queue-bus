@@ -19,7 +19,7 @@ namespace :queuebus do
 
   desc "List QueueBus queues that need worked"
   task :queues => [ :preload ] do
-    manager = ResqueBus::TaskManager.new(false)
+    manager = ::QueueBus::TaskManager.new(false)
     queues = manager.queue_names + ['bus_incoming']
     puts queues.join(", ")
   end
