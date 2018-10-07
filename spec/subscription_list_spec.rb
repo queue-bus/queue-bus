@@ -3,10 +3,12 @@ require 'spec_helper'
 module QueueBus
   describe SubscriptionList do
     describe ".from_redis" do
-      it "should return from attributes" do
-        mult = {"event_one" => {"class" => "MyClass", "queue_name" => "default", "key" => "event_one", "matcher" => {"bus_event_type" => "event_one"}}, 
-                "event_two" => {"class" => "MyClass", "queue_name" => "else",    "key" => "event_two", "matcher" => {"bus_event_type" => "event_two"}}}
+      let(:mult) do
+        {"event_one" => {"class" => "MyClass", "queue_name" => "default", "key" => "event_one", "matcher" => {"bus_event_type" => "event_one"}},
+         "event_two" => {"class" => "MyClass", "queue_name" => "else",    "key" => "event_two", "matcher" => {"bus_event_type" => "event_two"}}}
+      end
 
+      it "should return from attributes" do
         list = SubscriptionList.from_redis(mult)
         list.size.should == 2
         one = list.key("event_one")
@@ -23,6 +25,13 @@ module QueueBus
         two.queue_name.should == "else"
         two.class_name.should == "MyClass"
         two.matcher.filters.should == {"bus_event_type" => "event_two"}
+      end
+
+      it "raises an error if a subscription key already exists" do
+        mult["event_two"]["key"] = "event_one"
+
+        lambda { SubscriptionList.from_redis(mult) }
+          .should raise_error(RuntimeError)
       end
     end
     

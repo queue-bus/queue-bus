@@ -27,6 +27,8 @@ module QueueBus
     end
     
     def add(sub)
+      raise "Duplicate key: #{sub.key} already exists " \
+            "in the #{sub.queue_name} queue!" if @subscriptions.key?(sub.key)
       @subscriptions[sub.key] = sub
     end
     
