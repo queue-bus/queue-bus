@@ -40,7 +40,7 @@ module QueueBus
                             :hostname=, :hostname,
                             :adapter=, :adapter,
                             :incoming_queue=, :incoming_queue,
-                            :redis
+                            :redis, :worker_middleware_stack
 
     def_delegators :_dispatchers, :dispatch, :dispatchers, :dispatcher_by_key, :dispatcher_execute
 
