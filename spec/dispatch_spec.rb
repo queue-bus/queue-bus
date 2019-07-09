@@ -3,7 +3,7 @@ require 'spec_helper'
 module QueueBus
   describe Dispatch do
     it "should not start with any applications" do
-      Dispatch.new("d").subscriptions.size.should == 0
+      expect(Dispatch.new("d").subscriptions.size).to eq(0)
     end
     
     it "should register code to run and execute it" do
@@ -12,19 +12,19 @@ module QueueBus
         Runner1.run(attrs)
       end
       sub = dispatch.subscriptions.key("my_event")
-      sub.send(:executor).is_a?(Proc).should == true
+      expect(sub.send(:executor).is_a?(Proc)).to eq(true)
 
-      Runner.value.should == 0
+      expect(Runner.value).to eq(0)
       dispatch.execute("my_event", {"bus_event_type" => "my_event", "ok" => true})
-      Runner1.value.should == 1
-      Runner1.attributes.should == {"bus_event_type" => "my_event", "ok" => true}
+      expect(Runner1.value).to eq(1)
+      expect(Runner1.attributes).to eq({"bus_event_type" => "my_event", "ok" => true})
       
     end
     
     it "should not crash if not there" do
-      lambda {
+      expect {
         Dispatch.new("d").execute("fdkjh", "bus_event_type" => "fdkjh")
-      }.should_not raise_error
+      }.not_to raise_error
     end
     
     describe "Top Level" do
@@ -49,24 +49,24 @@ module QueueBus
        end
        
       it "should register and run" do
-        Runner2.value.should == 0
+        expect(Runner2.value).to eq(0)
         QueueBus.dispatcher_execute("testit", "event2", "bus_event_type" => "event2")
-        Runner2.value.should == 1
+        expect(Runner2.value).to eq(1)
         QueueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
-        Runner2.value.should == 2
+        expect(Runner2.value).to eq(2)
         QueueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
-        Runner2.value.should == 3
+        expect(Runner2.value).to eq(3)
       end
       
       it "should return the subscriptions" do
         dispatcher = QueueBus.dispatcher_by_key("testit")
         subs = dispatcher.subscriptions.all
         tuples = subs.collect{ |sub| [sub.key, sub.queue_name]}
-        tuples.should =~ [  ["event1", "testit_default"],
+        expect(tuples).to match_array([  ["event1", "testit_default"],
                             ["event2", "testit_default"],
                             ["event3", "testit_high"],
                             [ "(?-mix:^patt.+ern)", "testit_low"]
-                         ]
+                         ])
       end
     
     end

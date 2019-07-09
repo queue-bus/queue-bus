@@ -20,7 +20,7 @@ module QueueBus
     
     it "should publish the current time once" do
       Timecop.freeze "12/12/2013 12:01:19" do
-        QueueBus.should_receive(:publish).with("heartbeat_minutes", now_attributes)
+        expect(QueueBus).to receive(:publish).with("heartbeat_minutes", now_attributes)
         Heartbeat.perform
       end
       
@@ -31,12 +31,12 @@ module QueueBus
     
     it "should publish a minute later" do
       Timecop.freeze "12/12/2013 12:01:19" do
-        QueueBus.should_receive(:publish).with("heartbeat_minutes", now_attributes)
+        expect(QueueBus).to receive(:publish).with("heartbeat_minutes", now_attributes)
         Heartbeat.perform
       end
       
       Timecop.freeze "12/12/2013 12:02:01" do
-        QueueBus.should_receive(:publish).with("heartbeat_minutes", now_attributes)
+        expect(QueueBus).to receive(:publish).with("heartbeat_minutes", now_attributes)
         Heartbeat.perform
       end
     end

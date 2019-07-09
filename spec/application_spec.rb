@@ -4,42 +4,42 @@ module QueueBus
   describe Application do
     describe ".all" do
       it "should return empty array when none" do
-        Application.all.should == []
+        expect(Application.all).to eq([])
       end
       it "should return registered applications when there are some" do
         Application.new("One").subscribe(test_list(test_sub("fdksjh")))
         Application.new("Two").subscribe(test_list(test_sub("fdklhf")))
         Application.new("Three").subscribe(test_list(test_sub("fkld")))
 
-        Application.all.collect(&:app_key).should =~ ["one", "two", "three"]
+        expect(Application.all.collect(&:app_key)).to match_array(["one", "two", "three"])
 
         Application.new("two").unsubscribe
-        Application.all.collect(&:app_key).should =~ ["one", "three"]
+        expect(Application.all.collect(&:app_key)).to match_array(["one", "three"])
       end
     end
 
     describe ".new" do
       it "should have a key" do
-        Application.new("something").app_key.should == "something"
+        expect(Application.new("something").app_key).to eq("something")
 
-        Application.new("some thing").app_key.should == "some_thing"
-        Application.new("some-thing").app_key.should == "some_thing"
-        Application.new("some_thing").app_key.should == "some_thing"
-        Application.new("Some Thing").app_key.should == "some_thing"
+        expect(Application.new("some thing").app_key).to eq("some_thing")
+        expect(Application.new("some-thing").app_key).to eq("some_thing")
+        expect(Application.new("some_thing").app_key).to eq("some_thing")
+        expect(Application.new("Some Thing").app_key).to eq("some_thing")
       end
 
       it "should raise an error if not valid" do
-        lambda {
+        expect {
           Application.new("")
-        }.should raise_error
+        }.to raise_error
 
-        lambda {
+        expect {
           Application.new(nil)
-        }.should raise_error
+        }.to raise_error
 
-        lambda {
+        expect {
           Application.new("/")
-        }.should raise_error
+        }.to raise_error
       end
     end
 
@@ -50,7 +50,7 @@ module QueueBus
         QueueBus.redis { |redis| redis.hset("bus_app:myapp", "old_one", "oldqueue_name") }
         app = Application.new("myapp")
         val = app.send(:read_redis_hash)
-        val.should == {"new_one" => {"queue_name" => "x", "bus_event_type" => "event_name"}, "old_one" => "oldqueue_name"}
+        expect(val).to eq({"new_one" => {"queue_name" => "x", "bus_event_type" => "event_name"}, "old_one" => "oldqueue_name"})
       end
     end
 
@@ -59,45 +59,45 @@ module QueueBus
       let(:sub2) { test_sub("event_two", "default") }
       let(:sub3) { test_sub("event_three", "other") }
       it "should add array to redis" do
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
         Application.new("myapp").subscribe(test_list(sub1, sub2))
 
-        QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }.should == {"event_two"=>"{\"queue_name\":\"default\",\"key\":\"event_two\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_two\"}}",
-                                                                  "event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}"}
-        QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }.should =~ ["event_one", "event_two"]
-        QueueBus.redis { |redis| redis.smembers("bus_apps") }.should =~ ["myapp"]
+        expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({"event_two"=>"{\"queue_name\":\"default\",\"key\":\"event_two\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_two\"}}",
+                                                                  "event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}"})
+        expect(QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }).to match_array(["event_one", "event_two"])
+        expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to match_array(["myapp"])
       end
       it "should add string to redis" do
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
         Application.new("myapp").subscribe(test_list(sub1))
 
-        QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }.should == {"event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}"}
-        QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }.should =~ ["event_one"]
-        QueueBus.redis { |redis| redis.smembers("bus_apps") }.should =~ ["myapp"]
+        expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({"event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}"})
+        expect(QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }).to match_array(["event_one"])
+        expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to match_array(["myapp"])
       end
       it "should multiple queues to redis" do
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
         Application.new("myapp").subscribe(test_list(sub1, sub2, sub3))
-        QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }.should == {"event_two"=>"{\"queue_name\":\"default\",\"key\":\"event_two\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_two\"}}", "event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}",
-                                                                  "event_three"=>"{\"queue_name\":\"other\",\"key\":\"event_three\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_three\"}}"}
-        QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }.should =~ ["event_three", "event_two", "event_one"]
-        QueueBus.redis { |redis| redis.smembers("bus_apps") }.should =~ ["myapp"]
+        expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({"event_two"=>"{\"queue_name\":\"default\",\"key\":\"event_two\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_two\"}}", "event_one"=>"{\"queue_name\":\"default\",\"key\":\"event_one\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_one\"}}",
+                                                                  "event_three"=>"{\"queue_name\":\"other\",\"key\":\"event_three\",\"class\":\"::QueueBus::Rider\",\"matcher\":{\"bus_event_type\":\"event_three\"}}"})
+        expect(QueueBus.redis { |redis| redis.hkeys("bus_app:myapp") }).to match_array(["event_three", "event_two", "event_one"])
+        expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to match_array(["myapp"])
       end
 
       it "should do nothing if nil or empty" do
 
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
 
         Application.new("myapp").subscribe(nil)
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
 
         Application.new("myapp").subscribe([])
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
       end
 
       it "should call unsubscribe" do
         app = Application.new("myapp")
-        app.should_receive(:unsubscribe)
+        expect(app).to receive(:unsubscribe)
         app.subscribe([])
       end
     end
@@ -110,42 +110,42 @@ module QueueBus
 
         Application.new("myapp").unsubscribe
 
-        QueueBus.redis { |redis| redis.smembers("bus_apps") }.should == ["other"]
-        QueueBus.redis { |redis| redis.get("bus_app:myapp") }.should be_nil
+        expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to eq(["other"])
+        expect(QueueBus.redis { |redis| redis.get("bus_app:myapp") }).to be_nil
       end
     end
 
     describe "#subscription_matches" do
       it "should return if it is there" do
-        Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should == []
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to eq([])
 
         subs = test_list(test_sub("one_x"), test_sub("one_y"), test_sub("one"), test_sub("two"))
         Application.new("myapp").subscribe(subs)
-        Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should == []
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to eq([])
 
-        Application.new("myapp").subscription_matches("bus_event_type"=>"two").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "two", "default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "one", "default", "::QueueBus::Rider"]]
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"two").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "two", "default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "one", "default", "::QueueBus::Rider"]])
       end
 
       it "should handle * wildcards" do
         subs = test_list(test_sub("one.+"), test_sub("one"), test_sub("one_.*"), test_sub("two"))
         Application.new("myapp").subscribe(subs)
-        Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should == []
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to eq([])
 
-        Application.new("myapp").subscription_matches("bus_event_type"=>"onex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "one.+", "default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "one", "default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"one_x").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "one.+","default", "::QueueBus::Rider"], ["myapp", "one_.*", "default", "::QueueBus::Rider"]]
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"onex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "one.+", "default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "one", "default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"one_x").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "one.+","default", "::QueueBus::Rider"], ["myapp", "one_.*", "default", "::QueueBus::Rider"]])
       end
 
       it "should handle actual regular expressions" do
         subs = test_list(test_sub(/one.+/), test_sub("one"), test_sub(/one_.*/), test_sub("two"))
         Application.new("myapp").subscribe(subs)
-        Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should == []
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"three").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to eq([])
 
-        Application.new("myapp").subscription_matches("bus_event_type"=>"onex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"donex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "one" ,"default", "::QueueBus::Rider"]]
-        Application.new("myapp").subscription_matches("bus_event_type"=>"one_x").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}.should =~ [["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"], ["myapp", "(?-mix:one_.*)", "default", "::QueueBus::Rider"]]
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"onex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"donex").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"one").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "one" ,"default", "::QueueBus::Rider"]])
+        expect(Application.new("myapp").subscription_matches("bus_event_type"=>"one_x").collect{|s| [s.app_key, s.key, s.queue_name, s.class_name]}).to match_array([["myapp", "(?-mix:one.+)", "default", "::QueueBus::Rider"], ["myapp", "(?-mix:one_.*)", "default", "::QueueBus::Rider"]])
       end
     end
   end

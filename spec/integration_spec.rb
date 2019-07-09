@@ -6,15 +6,15 @@ module QueueBus
       write1 = Subscription.new("default", "key1", "MyClass1", {"bus_event_type" => "event_one"})
       write2 = Subscription.new("else_ok", "key2", "MyClass2", {"bus_event_type" => /^[ab]here/})  #regex
     
-      write1.matches?("bus_event_type" => "event_one").should  == true
-      write1.matches?("bus_event_type" => "event_one1").should == false
-      write1.matches?("bus_event_type" => "aevent_one").should == false
+      expect(write1.matches?("bus_event_type" => "event_one")).to  eq(true)
+      expect(write1.matches?("bus_event_type" => "event_one1")).to eq(false)
+      expect(write1.matches?("bus_event_type" => "aevent_one")).to eq(false)
       
-      write2.matches?("bus_event_type" => "ahere").should == true
-      write2.matches?("bus_event_type" => "bhere").should == true
-      write2.matches?("bus_event_type" => "qhere").should == false
-      write2.matches?("bus_event_type" => "abhere").should == false
-      write2.matches?("bus_event_type" => "[ab]here").should == false
+      expect(write2.matches?("bus_event_type" => "ahere")).to eq(true)
+      expect(write2.matches?("bus_event_type" => "bhere")).to eq(true)
+      expect(write2.matches?("bus_event_type" => "qhere")).to eq(false)
+      expect(write2.matches?("bus_event_type" => "abhere")).to eq(false)
+      expect(write2.matches?("bus_event_type" => "[ab]here")).to eq(false)
     
       write = SubscriptionList.new
       write.add(write1)
@@ -27,26 +27,26 @@ module QueueBus
       app = Application.new("test")
       read = app.send(:subscriptions)
     
-      read.size.should == 2
+      expect(read.size).to eq(2)
       read1 = read.key("key1")
       read2 = read.key("key2")
-      read1.should_not be_nil
-      read2.should_not be_nil
+      expect(read1).not_to be_nil
+      expect(read2).not_to be_nil
       
-      read1.queue_name.should == "default"
-      read1.class_name.should == "MyClass1"
-      read2.queue_name.should == "else_ok"
-      read2.class_name.should == "MyClass2"
+      expect(read1.queue_name).to eq("default")
+      expect(read1.class_name).to eq("MyClass1")
+      expect(read2.queue_name).to eq("else_ok")
+      expect(read2.class_name).to eq("MyClass2")
       
-      read1.matches?("bus_event_type" => "event_one").should  == true
-      read1.matches?("bus_event_type" => "event_one1").should == false
-      read1.matches?("bus_event_type" => "aevent_one").should == false
+      expect(read1.matches?("bus_event_type" => "event_one")).to  eq(true)
+      expect(read1.matches?("bus_event_type" => "event_one1")).to eq(false)
+      expect(read1.matches?("bus_event_type" => "aevent_one")).to eq(false)
       
-      read2.matches?("bus_event_type" => "ahere").should == true
-      read2.matches?("bus_event_type" => "bhere").should == true
-      read2.matches?("bus_event_type" => "qhere").should == false
-      read2.matches?("bus_event_type" => "abhere").should == false
-      read2.matches?("bus_event_type" => "[ab]here").should == false
+      expect(read2.matches?("bus_event_type" => "ahere")).to eq(true)
+      expect(read2.matches?("bus_event_type" => "bhere")).to eq(true)
+      expect(read2.matches?("bus_event_type" => "qhere")).to eq(false)
+      expect(read2.matches?("bus_event_type" => "abhere")).to eq(false)
+      expect(read2.matches?("bus_event_type" => "[ab]here")).to eq(false)
       
     end
   end

@@ -70,111 +70,111 @@ require 'spec_helper'
     end
 
     it "should have the application" do
-      SubscriberTest1.app_key.should == "my_thing"
-      SubModule::SubscriberTest3.app_key.should == "sub_module"
-      SubModule::SubscriberTest4.app_key.should == "sub_module"
+      expect(SubscriberTest1.app_key).to eq("my_thing")
+      expect(SubModule::SubscriberTest3.app_key).to eq("sub_module")
+      expect(SubModule::SubscriberTest4.app_key).to eq("sub_module")
     end
 
     it "should be able to transform the attributes" do
       dispatcher = QueueBus.dispatcher_by_key("test2")
       all = dispatcher.subscriptions.all
-      all.size.should == 1
+      expect(all.size).to eq(1)
 
       sub = all.first
-      sub.queue_name.should == "test2_default"
-      sub.class_name.should == "SubscriberTest2"
-      sub.key.should == "SubscriberTest2.test2"
-      sub.matcher.filters.should == {"value"=>"bus_special_value_present"}
+      expect(sub.queue_name).to eq("test2_default")
+      expect(sub.class_name).to eq("SubscriberTest2")
+      expect(sub.key).to eq("SubscriberTest2.test2")
+      expect(sub.matcher.filters).to eq({"value"=>"bus_special_value_present"})
 
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "something2", "value"=>"nice"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:test2_default") })
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should eq({"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
                                "bus_event_type" => "something2", "value"=>"nice", "x"=>"y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 0
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
+      expect(QueueBus::Runner2.value).to eq(0)
       QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(0)
 
-      QueueBus::Runner1.attributes.should == {"transformed" => 4}
+      expect(QueueBus::Runner1.attributes).to eq({"transformed" => 4})
 
 
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "something2", "value"=>"12"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:test2_default") })
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
-                               "bus_event_type" => "something2", "value"=>"12", "x"=>"y"}.merge(bus_attrs)
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "SubscriberTest2", "bus_rider_app_key"=>"test2", "bus_rider_sub_key"=>"SubscriberTest2.test2", "bus_rider_queue" => "test2_default", "bus_rider_class_name"=>"SubscriberTest2",
+                               "bus_event_type" => "something2", "value"=>"12", "x"=>"y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(0)
       QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
-      QueueBus::Runner1.value.should == 2
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(2)
+      expect(QueueBus::Runner2.value).to eq(0)
 
-      QueueBus::Runner1.attributes.should == {"transformed" => 2}
+      expect(QueueBus::Runner1.attributes).to eq({"transformed" => 2})
     end
 
 
     it "should put in a different queue" do
       dispatcher = QueueBus.dispatcher_by_key("sub_module")
       all = dispatcher.subscriptions.all
-      all.size.should == 4
+      expect(all.size).to eq(4)
 
       sub = all.select{ |s| s.key == "SubModule::SubscriberTest3.test3"}.first
-      sub.queue_name.should == "sub_queue1"
-      sub.class_name.should == "SubModule::SubscriberTest3"
-      sub.key.should == "SubModule::SubscriberTest3.test3"
-      sub.matcher.filters.should == {"bus_event_type"=>"the_event"}
+      expect(sub.queue_name).to eq("sub_queue1")
+      expect(sub.class_name).to eq("SubModule::SubscriberTest3")
+      expect(sub.key).to eq("SubModule::SubscriberTest3.test3")
+      expect(sub.matcher.filters).to eq({"bus_event_type"=>"the_event"})
 
       sub = all.select{ |s| s.key == "SubModule::SubscriberTest3.the_event"}.first
-      sub.queue_name.should == "sub_queue2"
-      sub.class_name.should == "SubModule::SubscriberTest3"
-      sub.key.should == "SubModule::SubscriberTest3.the_event"
-      sub.matcher.filters.should == {"bus_event_type"=>"the_event"}
+      expect(sub.queue_name).to eq("sub_queue2")
+      expect(sub.class_name).to eq("SubModule::SubscriberTest3")
+      expect(sub.key).to eq("SubModule::SubscriberTest3.the_event")
+      expect(sub.matcher.filters).to eq({"bus_event_type"=>"the_event"})
 
       sub = all.select{ |s| s.key == "SubModule::SubscriberTest3.other"}.first
-      sub.queue_name.should == "sub_module_default"
-      sub.class_name.should == "SubModule::SubscriberTest3"
-      sub.key.should == "SubModule::SubscriberTest3.other"
-      sub.matcher.filters.should == {"bus_event_type"=>"other_event"}
+      expect(sub.queue_name).to eq("sub_module_default")
+      expect(sub.class_name).to eq("SubModule::SubscriberTest3")
+      expect(sub.key).to eq("SubModule::SubscriberTest3.other")
+      expect(sub.matcher.filters).to eq({"bus_event_type"=>"other_event"})
 
       sub = all.select{ |s| s.key == "SubModule::SubscriberTest4.test4"}.first
-      sub.queue_name.should == "sub_queue1"
-      sub.class_name.should == "SubModule::SubscriberTest4"
-      sub.key.should == "SubModule::SubscriberTest4.test4"
-      sub.matcher.filters.should == {"bus_event_type"=>"test4"}
+      expect(sub.queue_name).to eq("sub_queue1")
+      expect(sub.class_name).to eq("SubModule::SubscriberTest4")
+      expect(sub.key).to eq("SubModule::SubscriberTest4.test4")
+      expect(sub.matcher.filters).to eq({"bus_event_type"=>"test4"})
 
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "the_event"))
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:sub_queue1") })
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.test3", "bus_rider_queue" => "sub_queue1", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
-                                "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs)
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.test3", "bus_rider_queue" => "sub_queue1", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
+                                "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 0
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
+      expect(QueueBus::Runner2.value).to eq(0)
       QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(0)
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:sub_queue2") })
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.the_event", "bus_rider_queue" => "sub_queue2", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
-                                "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs)
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "SubModule::SubscriberTest3", "bus_rider_app_key"=>"sub_module", "bus_rider_sub_key"=>"SubModule::SubscriberTest3.the_event", "bus_rider_queue" => "sub_queue2", "bus_rider_class_name"=>"SubModule::SubscriberTest3",
+                                "bus_event_type" => "the_event", "x" => "y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(0)
       QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(1)
     end
 
     it "should subscribe to default and attributes" do
@@ -182,19 +182,19 @@ require 'spec_helper'
       all = dispatcher.subscriptions.all
 
       sub = all.select{ |s| s.key == "SubscriberTest1.event_sub"}.first
-      sub.queue_name.should == "myqueue"
-      sub.class_name.should == "SubscriberTest1"
-      sub.key.should == "SubscriberTest1.event_sub"
-      sub.matcher.filters.should == {"bus_event_type"=>"event_sub"}
+      expect(sub.queue_name).to eq("myqueue")
+      expect(sub.class_name).to eq("SubscriberTest1")
+      expect(sub.key).to eq("SubscriberTest1.event_sub")
+      expect(sub.matcher.filters).to eq({"bus_event_type"=>"event_sub"})
 
       sub = all.select{ |s| s.key == "SubscriberTest1.thing_filter"}.first
-      sub.queue_name.should == "myqueue"
-      sub.class_name.should == "SubscriberTest1"
-      sub.key.should == "SubscriberTest1.thing_filter"
-      sub.matcher.filters.should == {"x"=>"y"}
+      expect(sub.queue_name).to eq("myqueue")
+      expect(sub.class_name).to eq("SubscriberTest1")
+      expect(sub.key).to eq("SubscriberTest1.thing_filter")
+      expect(sub.matcher.filters).to eq({"x"=>"y"})
 
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "event_sub"))
-      QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
+      expect(QueueBus.redis { |redis| redis.smembers("queues") }).to match_array(["myqueue"])
 
       pop1 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
       pop2 = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
@@ -207,63 +207,63 @@ require 'spec_helper'
         hash2 = pop1
       end
 
-      hash1["class"].should == "QueueBus::Worker"
-      JSON.parse(hash1["args"].first).should eq({"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+      expect(hash1["class"]).to eq("QueueBus::Worker")
+      expect(JSON.parse(hash1["args"].first)).to eq({"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
                                 "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 0
-      QueueBus::Runner2.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
+      expect(QueueBus::Runner2.value).to eq(0)
       QueueBus::Util.constantize(hash1["class"]).perform(*hash1["args"])
-      QueueBus::Runner1.value.should == 0
-      QueueBus::Runner2.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(0)
+      expect(QueueBus::Runner2.value).to eq(1)
 
-      hash2["class"].should == "QueueBus::Worker"
-      hash2["args"].size.should == 1
-      JSON.parse(hash2["args"].first).should == {"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
-                                "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs)
+      expect(hash2["class"]).to eq("QueueBus::Worker")
+      expect(hash2["args"].size).to eq(1)
+      expect(JSON.parse(hash2["args"].first)).to eq({"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+                                "bus_event_type" => "event_sub", "x" => "y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 0
-      QueueBus::Runner2.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(0)
+      expect(QueueBus::Runner2.value).to eq(1)
       QueueBus::Util.constantize(hash2["class"]).perform(*hash2["args"])
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(1)
 
       QueueBus::Driver.perform(attributes.merge("bus_event_type" => "event_sub_other"))
-      QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
+      expect(QueueBus.redis { |redis| redis.smembers("queues") }).to match_array(["myqueue"])
 
       hash = JSON.parse(QueueBus.redis { |redis| redis.lpop("queue:myqueue") })
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
-                                "bus_event_type" => "event_sub_other", "x" => "y"}.merge(bus_attrs)
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "SubscriberTest1", "bus_rider_app_key"=>"my_thing", "bus_rider_sub_key"=>"SubscriberTest1.thing_filter", "bus_rider_queue" => "myqueue", "bus_rider_class_name"=>"SubscriberTest1",
+                                "bus_event_type" => "event_sub_other", "x" => "y"}.merge(bus_attrs))
 
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(1)
       QueueBus::Util.constantize(hash["class"]).perform(*hash["args"])
-      QueueBus::Runner1.value.should == 1
-      QueueBus::Runner2.value.should == 2
+      expect(QueueBus::Runner1.value).to eq(1)
+      expect(QueueBus::Runner2.value).to eq(2)
 
       QueueBus::Driver.perform({"x"=>"z"}.merge("bus_event_type" => "event_sub_other"))
-      QueueBus.redis { |redis| redis.smembers("queues") }.should =~ ["myqueue"]
+      expect(QueueBus.redis { |redis| redis.smembers("queues") }).to match_array(["myqueue"])
 
-      QueueBus.redis { |redis| redis.lpop("queue:myqueue") }.should be_nil
+      expect(QueueBus.redis { |redis| redis.lpop("queue:myqueue") }).to be_nil
     end
 
     describe ".perform" do
       let(:attributes) { {"bus_rider_sub_key"=>"SubscriberTest1.event_sub", "bus_locale" => "en", "bus_timezone" => "PST"} }
       it "should call the method based on key" do
-        SubscriberTest1.any_instance.should_receive(:event_sub)
+        expect_any_instance_of(SubscriberTest1).to receive(:event_sub)
         SubscriberTest1.perform(attributes)
       end
       it "should set the timezone and locale if present" do
-        defined?(I18n).should be_nil
-        Time.respond_to?(:zone).should eq(false)
+        expect(defined?(I18n)).to be_nil
+        expect(Time.respond_to?(:zone)).to eq(false)
 
         stub_const("I18n", Class.new)
-        I18n.should_receive(:locale=).with("en")
-        Time.should_receive(:zone=).with("PST")
+        expect(I18n).to receive(:locale=).with("en")
+        expect(Time).to receive(:zone=).with("PST")
 
-        SubscriberTest1.any_instance.should_receive(:event_sub)
+        expect_any_instance_of(SubscriberTest1).to receive(:event_sub)
         SubscriberTest1.perform(attributes)
       end
     end
