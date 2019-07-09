@@ -12,7 +12,9 @@ module QueueBus
         return
       end
 
-      klass.perform(attributes)
+      QueueBus.worker_middleware_stack.run(attributes) do
+        klass.perform(attributes)
+      end
     end
 
     # all our workers include this one

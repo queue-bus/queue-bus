@@ -55,6 +55,10 @@ module QueueBus
       @incoming_queue ||= "bus_incoming"
     end
 
+    def worker_middleware_stack
+      @worker_middleware_stack ||= QueueBus::Middleware::Stack.new
+    end
+
     def hostname
       @hostname ||= `hostname 2>&1`.strip.sub(/.local/,'')
     end
