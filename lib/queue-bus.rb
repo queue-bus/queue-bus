@@ -11,6 +11,7 @@ module QueueBus
   autoload :Heartbeat,        'queue_bus/heartbeat'
   autoload :Local,            'queue_bus/local'
   autoload :Matcher,          'queue_bus/matcher'
+  autoload :Middleware,       'queue_bus/middleware'
   autoload :Publishing,       'queue_bus/publishing'
   autoload :Publisher,        'queue_bus/publisher'
   autoload :Rider,            'queue_bus/rider'
