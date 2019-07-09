@@ -4,7 +4,7 @@ describe "Publishing an event in the future" do
 
   before(:each) do
     Timecop.freeze(now)
-    QueueBus.stub(:generate_uuid).and_return("idfhlkj")
+    allow(QueueBus).to receive(:generate_uuid).and_return("idfhlkj")
   end
   after(:each) do
     Timecop.return
@@ -25,27 +25,27 @@ describe "Publishing an event in the future" do
     QueueBus.publish_at(future, event_name, hash)
 
     schedule = QueueBus.redis { |redis| redis.zrange("delayed_queue_schedule", 0, 1) }
-    schedule.should == [future.to_i.to_s]
+    expect(schedule).to eq([future.to_i.to_s])
 
     val = QueueBus.redis { |redis| redis.lpop("delayed:#{future.to_i}") }
     hash = JSON.parse(val)
 
-    hash["class"].should == "QueueBus::Worker"
-    hash["args"].size.should == 1
-    JSON.parse(hash["args"].first).should == {"bus_class_proxy"=>"QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs)
-    hash["queue"].should == "bus_incoming"
+    expect(hash["class"]).to eq("QueueBus::Worker")
+    expect(hash["args"].size).to eq(1)
+    expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy"=>"QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs))
+    expect(hash["queue"]).to eq("bus_incoming")
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
-    val.should == nil # nothing really added
+    expect(val).to eq(nil) # nothing really added
 
     Timecop.freeze(worktime)
     QueueBus::Publisher.perform(JSON.parse(hash["args"].first))
 
     val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
     hash = JSON.parse(val)
-    hash["class"].should == "QueueBus::Worker"
-    hash["args"].size.should == 1
-    JSON.parse(hash["args"].first).should == {"bus_class_proxy"=>"QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs)
+    expect(hash["class"]).to eq("QueueBus::Worker")
+    expect(hash["args"].size).to eq(1)
+    expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy"=>"QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs))
   end
 
 end
