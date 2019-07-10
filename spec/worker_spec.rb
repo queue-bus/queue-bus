@@ -26,7 +26,7 @@ module QueueBus
       expect(QueueBus::Rider).to receive(:perform).with(hash).and_raise("rider crash")
       expect {
         QueueBus::Worker.perform(JSON.generate(hash))
-      }.to raise_error
+      }.to raise_error(RuntimeError, 'rider crash')
     end
   end
 end

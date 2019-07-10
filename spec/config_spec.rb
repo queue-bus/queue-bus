@@ -54,7 +54,7 @@ describe "QueueBus config" do
     # and should raise if already set
     expect {
       QueueBus.adapter = :data
-    }.to raise_error
+    }.to raise_error(RuntimeError, "Adapter already set to QueueBus::Adapters::Data")
   end
 
   context "with a fresh load" do
@@ -69,7 +69,7 @@ describe "QueueBus config" do
       # and should raise if already set
       expect {
         QueueBus.adapter = :data
-      }.to raise_error
+      }.to raise_error(RuntimeError, "Adapter already set to QueueBus::Adapters::Data")
     end
 
     it "should be able to be set to something else" do
