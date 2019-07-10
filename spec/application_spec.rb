@@ -31,15 +31,15 @@ module QueueBus
       it "should raise an error if not valid" do
         expect {
           Application.new("")
-        }.to raise_error
+        }.to raise_error(RuntimeError, "Invalid application name")
 
         expect {
           Application.new(nil)
-        }.to raise_error
+        }.to raise_error(RuntimeError, "Invalid application name")
 
         expect {
           Application.new("/")
-        }.to raise_error
+        }.to raise_error(RuntimeError, "Invalid application name")
       end
     end
 
