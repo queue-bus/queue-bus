@@ -38,7 +38,7 @@ module QueueBus
                             :before_publish=, :before_publish_callback,
                             :logger=, :logger, :log_application, :log_worker,
                             :hostname=, :hostname,
-                            :adapter=, :adapter,
+                            :adapter=, :adapter, :has_adapter?,
                             :incoming_queue=, :incoming_queue,
                             :redis, :worker_middleware_stack
 
@@ -60,5 +60,4 @@ module QueueBus
       @_dispatchers ||= ::QueueBus::Dispatchers.new
     end
   end
-
 end
