@@ -29,4 +29,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency("rspec")
   s.add_development_dependency("timecop")
   s.add_development_dependency("json_pure")
+  s.add_development_dependency("rubocop")
 end
