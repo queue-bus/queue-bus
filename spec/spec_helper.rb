@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'timecop'
 require 'queue-bus'
 require 'adapter/support'
@@ -33,9 +35,9 @@ module QueueBus
   end
 end
 
-def test_sub(event_name, queue="default")
-  matcher = {"bus_event_type" => event_name}
-  QueueBus::Subscription.new(queue, event_name, "::QueueBus::Rider", matcher, nil)
+def test_sub(event_name, queue = 'default')
+  matcher = { 'bus_event_type' => event_name }
+  QueueBus::Subscription.new(queue, event_name, '::QueueBus::Rider', matcher, nil)
 end
 
 def test_list(*args)
@@ -50,6 +52,7 @@ RSpec.configure do |config|
   config.mock_with :rspec do |c|
     c.syntax = :expect
   end
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
@@ -57,10 +60,12 @@ RSpec.configure do |config|
   config.before(:each) do
     reset_test_adapter
   end
+
   config.after(:each) do
     begin
-      QueueBus.redis { |redis| redis.flushall }
-    rescue
+      QueueBus.redis(&:flushall)
+    rescue RuntimeError # rubocop:disable Lint/HandleExceptions
+      # We raise if redis isn't there.
     end
     QueueBus.send(:reset)
     QueueBus::Runner1.reset

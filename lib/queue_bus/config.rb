@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'socket'
+require 'logger'
 
 module QueueBus
   # This class contains all the configuration for a running queue bus application.
@@ -63,7 +64,7 @@ module QueueBus
     end
 
     def log_worker(message)
-      logger&.debug(message) if ENV['LOGGING'] || ENV['VERBOSE'] || ENV['VVERBOSE']
+      logger&.debug(message)
     end
   end
 end
