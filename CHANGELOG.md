@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Adds `QueueBus.has_adapter?` to check whether the adapter is set.
+
+### Changed
+- Now uses `Process.hostname` to determine hostname versus relying on unix shell.
+- Rubocop is now a dev dependency.
+- Accessors to config are now done with actual attrs.
+- Logging with the adapter will use the logger if present.
+
+### Fixed
+- Passing a class to `adapter=` would error on a `NameError`.
+
 ## [0.6.0]
 
 ### Added
