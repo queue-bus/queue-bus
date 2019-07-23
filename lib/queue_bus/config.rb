@@ -1,21 +1,43 @@
+# frozen_string_literal: true
+
+require 'socket'
+
 module QueueBus
+  # This class contains all the configuration for a running queue bus application.
   class Config
-    def adapter=val
-      raise "Adapter already set to #{@adapter_instance.class.name}" if @adapter_instance
-      if val.is_a?(Class)
-        @adapter_instance = name_or_klass.new
-      elsif val.is_a?(::QueueBus::Adapters::Base)
-        @adapter_instance = val
-      else
-        class_name = ::QueueBus::Util.classify(val)
-        @adapter_instance = ::QueueBus::Util.constantize("::QueueBus::Adapters::#{class_name}").new
-      end
-      @adapter_instance
+    attr_accessor :default_queue, :local_mode, :hostname, :incoming_queue, :logger
+
+    attr_reader :worker_middleware_stack
+
+    def initialize
+      @worker_middleware_stack = QueueBus::Middleware::Stack.new
+      @incoming_queue = 'bus_incoming'
+      @hostname = Socket.gethostname
+    end
+
+    def adapter=(val)
+      raise "Adapter already set to #{@adapter_instance.class.name}" if has_adapter?
+
+      @adapter_instance =
+        if val.is_a?(Class)
+          val.new
+        elsif val.is_a?(::QueueBus::Adapters::Base)
+          val
+        else
+          class_name = ::QueueBus::Util.classify(val)
+          ::QueueBus::Util.constantize("::QueueBus::Adapters::#{class_name}").new
+        end
     end
 
     def adapter
-      return @adapter_instance if @adapter_instance
-      raise "no adapter has been set"
+      return @adapter_instance if has_adapter?
+
+      raise 'no adapter has been set'
+    end
+
+    # Checks whether an adapter is set and returns true if it is.
+    def has_adapter? # rubocop:disable Naming/PredicateName
+      !@adapter_instance.nil?
     end
 
     def redis(&block)
@@ -23,80 +45,25 @@ module QueueBus
       adapter.redis(&block)
     end
 
-    def default_app_key=val
+    attr_reader :default_app_key
+    def default_app_key=(val)
       @default_app_key = Application.normalize(val)
     end
 
-    def default_app_key
-      @default_app_key
-    end
-
-    def default_queue=val
-      @default_queue = val
-    end
-
-    def default_queue
-      @default_queue
-    end
-
-    def local_mode=value
-      @local_mode = value
-    end
-
-    def local_mode
-      @local_mode
-    end
-
-    def incoming_queue=val
-      @incoming_queue = val
-    end
-
-    def incoming_queue
-      @incoming_queue ||= "bus_incoming"
-    end
-
-    def worker_middleware_stack
-      @worker_middleware_stack ||= QueueBus::Middleware::Stack.new
-    end
-
-    def hostname
-      @hostname ||= `hostname 2>&1`.strip.sub(/.local/,'')
-    end
-
-    def hostname=val
-      @hostname = val
-    end
-
-    def before_publish=(proc)
-      @before_publish_callback = proc
+    def before_publish=(callback)
+      @before_publish_callback = callback
     end
 
     def before_publish_callback(attributes)
-      if @before_publish_callback
-        @before_publish_callback.call(attributes)
-      end
-    end
-
-    def logger
-      @logger
-    end
-
-    def logger=val
-      @logger = val
+      @before_publish_callback&.call(attributes)
     end
 
     def log_application(message)
-      if logger
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        logger.info("** [#{time}] #$$: QueueBus #{message}")
-      end
+      logger&.info(message)
     end
 
     def log_worker(message)
-      if ENV['LOGGING'] || ENV['VERBOSE'] || ENV['VVERBOSE']
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "** [#{time}] #$$: #{message}"
-      end
+      logger&.debug(message) if ENV['LOGGING'] || ENV['VERBOSE'] || ENV['VVERBOSE']
     end
   end
 end
