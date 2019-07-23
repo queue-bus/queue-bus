@@ -1,0 +1,35 @@
+AllCops:
+  TargetRubyVersion: 2.4
+  ExtraDetails: true
+
+# http://rubocop.readthedocs.io/en/latest/cops_style/#stylefrozenstringliteralcomment
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+# https://rubocop.readthedocs.io/en/latest/cops_style/#styledatetime
+Style/DateTime:
+  Enabled: true
+
+# http://rubocop.readthedocs.io/en/latest/cops_metrics/#metricslinelength
+Metrics/LineLength:
+  Max: 100
+
+Metrics/MethodLength:
+  Max: 15
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+# https://rubocop.readthedocs.io/en/latest/cops_layout/#layoutdotposition
+Layout/DotPosition:
+  Enabled: true
+  EnforcedStyle: leading
+
+# https://rubocop.readthedocs.io/en/latest/cops_style/#stylehashsyntax
+Style/HashSyntax:
+  Enabled: true
+
+# https://rubocop-rspec.readthedocs.io/en/latest/cops_rspec/#rspecfocus
+RSpec/Focus:
+  Enabled: true
