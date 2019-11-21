@@ -53,6 +53,7 @@ describe 'QueueBus config' do
     end
 
     it 'resets to the original local mode after the block' do
+      expect(QueueBus.local_mode).to eq nil
       QueueBus.with_local_mode(:suppress) do
         expect(QueueBus.local_mode).to eq :suppress
       end
