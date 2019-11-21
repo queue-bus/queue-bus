@@ -23,10 +23,12 @@ module QueueBus
     # be deleted.
     Wrap = Struct.new(:value)
 
+    LOCAL_MODE_VAR = :queue_bus_local_mode
+
     # Returns the current local mode of QueueBus
     def local_mode
-      if Thread.current.thread_variable?(:queue_bus_local_mode)
-        Thread.current.thread_variable_get(:queue_bus_local_mode).value
+      if Thread.current.thread_variable?(LOCAL_MODE_VAR)
+        Thread.current.thread_variable_get(LOCAL_MODE_VAR).value
       else
         @local_mode
       end
@@ -37,11 +39,11 @@ module QueueBus
     #
     # @param mode [Symbol] the mode to switch to
     def with_local_mode(mode)
-      previous = Thread.current.thread_variable_get(:queue_bus_local_mode)
-      Thread.current.thread_variable_set(:queue_bus_local_mode, Wrap.new(mode))
+      previous = Thread.current.thread_variable_get(LOCAL_MODE_VAR)
+      Thread.current.thread_variable_set(LOCAL_MODE_VAR, Wrap.new(mode))
       yield if block_given?
     ensure
-      Thread.current.thread_variable_set(:queue_bus_local_mode, previous)
+      Thread.current.thread_variable_set(LOCAL_MODE_VAR, previous)
     end
 
     def adapter=(val)
