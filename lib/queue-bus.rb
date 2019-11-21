@@ -34,7 +34,7 @@ module QueueBus
 
     def_delegators :config, :default_app_key=, :default_app_key,
                             :default_queue=, :default_queue,
-                            :local_mode=, :local_mode,
+                            :local_mode=, :local_mode, :with_local_mode,
                             :before_publish=, :before_publish_callback,
                             :logger=, :logger, :log_application, :log_worker,
                             :hostname=, :hostname,
