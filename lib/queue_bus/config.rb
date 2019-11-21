@@ -27,7 +27,7 @@ module QueueBus
 
     # Returns the current local mode of QueueBus
     def local_mode
-      if Thread.current.thread_variable?(LOCAL_MODE_VAR)
+      if Thread.current.thread_variable_get(LOCAL_MODE_VAR).is_a?(Wrap)
         Thread.current.thread_variable_get(LOCAL_MODE_VAR).value
       else
         @local_mode
