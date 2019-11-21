@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0]
+
+### Added
+- Adds `QueueBus.with_local_mode` method. Useful when working with a multithreaded environment.
+
 ## [0.7.0]
 
 ### Added
