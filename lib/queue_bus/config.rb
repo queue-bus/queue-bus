@@ -6,14 +6,44 @@ require 'logger'
 module QueueBus
   # This class contains all the configuration for a running queue bus application.
   class Config
-    attr_accessor :default_queue, :local_mode, :hostname, :incoming_queue, :logger
+    attr_accessor :default_queue, :hostname, :incoming_queue, :logger
 
     attr_reader :worker_middleware_stack
+    attr_writer :local_mode
 
     def initialize
       @worker_middleware_stack = QueueBus::Middleware::Stack.new
       @incoming_queue = 'bus_incoming'
       @hostname = Socket.gethostname
+    end
+
+    # A wrapper that is always "truthy" but can contain an inner value. This is useful for
+    # checking that a thread local variable is set to a value, even if that value happens to
+    # be nil. This is important because setting a thread local value to nil will cause it to
+    # be deleted.
+    Wrap = Struct.new(:value)
+
+    LOCAL_MODE_VAR = :queue_bus_local_mode
+
+    # Returns the current local mode of QueueBus
+    def local_mode
+      if Thread.current.thread_variable?(LOCAL_MODE_VAR)
+        Thread.current.thread_variable_get(LOCAL_MODE_VAR).value
+      else
+        @local_mode
+      end
+    end
+
+    # Overrides the current local mode for the duration of a block. This is a threadsafe
+    # implementation. After, the global setting will be resumed.
+    #
+    # @param mode [Symbol] the mode to switch to
+    def with_local_mode(mode)
+      previous = Thread.current.thread_variable_get(LOCAL_MODE_VAR)
+      Thread.current.thread_variable_set(LOCAL_MODE_VAR, Wrap.new(mode))
+      yield if block_given?
+    ensure
+      Thread.current.thread_variable_set(LOCAL_MODE_VAR, previous)
     end
 
     def adapter=(val)

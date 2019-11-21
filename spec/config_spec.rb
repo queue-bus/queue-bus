@@ -26,6 +26,40 @@ describe 'QueueBus config' do
     expect(QueueBus.local_mode).to eq(:standalone)
   end
 
+  describe '#with_local_mode' do
+    it 'sets the local mode on the thread' do
+      QueueBus.with_local_mode(:suppress) do
+        expect(QueueBus.local_mode).to eq :suppress
+        Thread.new { expect(QueueBus.local_mode).to eq nil }.join
+      end
+    end
+
+    it 'supports nesting' do
+      QueueBus.with_local_mode(:suppress) do
+        expect(QueueBus.local_mode).to eq :suppress
+        QueueBus.with_local_mode(:inline) do
+          expect(QueueBus.local_mode).to eq :inline
+        end
+        expect(QueueBus.local_mode).to eq :suppress
+      end
+    end
+
+    it 'respects an override of nil' do
+      QueueBus.local_mode = :suppress
+      QueueBus.with_local_mode(nil) do
+        expect(QueueBus.local_mode).to eq nil
+      end
+      QueueBus.local_mode = :suppress
+    end
+
+    it 'resets to the original local mode after the block' do
+      QueueBus.with_local_mode(:suppress) do
+        expect(QueueBus.local_mode).to eq :suppress
+      end
+      expect(QueueBus.local_mode).to eq nil
+    end
+  end
+
   it 'sets the hostname' do
     expect(QueueBus.hostname).not_to eq(nil)
     QueueBus.hostname = 'whatever'
