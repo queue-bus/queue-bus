@@ -44,6 +44,14 @@ describe 'QueueBus config' do
       end
     end
 
+    it 'respects an override of nil' do
+      QueueBus.local_mode = :suppress
+      QueueBus.with_local_mode(nil) do
+        expect(QueueBus.local_mode).to eq nil
+      end
+      QueueBus.local_mode = :suppress
+    end
+
     it 'resets to the original local mode after the block' do
       QueueBus.with_local_mode(:suppress) do
         expect(QueueBus.local_mode).to eq :suppress
