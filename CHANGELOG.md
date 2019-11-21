@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1]
+
 ### Fixed
 - `with_local_mode` breaks subsequent calls to `local_mode` on versions less than 2.6.
 
