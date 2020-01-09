@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
-describe "adapter is set" do
+describe 'adapter is set' do
   it "should call it's enabled! method on init" do
     QueueBus.send(:reset)
     expect_any_instance_of(adapter_under_test_class).to receive(:enabled!)
@@ -8,7 +10,7 @@ describe "adapter is set" do
     QueueBus.send(:reset)
   end
 
-  it "should be defaulting to Data from spec_helper" do
+  it 'should be defaulting to Data from spec_helper' do
     expect(QueueBus.adapter.is_a?(adapter_under_test_class)).to eq(true)
   end
 end

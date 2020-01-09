@@ -12,8 +12,8 @@ module QueueBus
       @value ||= 0
     end
 
-    def self.attributes
-      @attributes
+    class << self
+      attr_reader :attributes
     end
 
     def self.run(attrs)

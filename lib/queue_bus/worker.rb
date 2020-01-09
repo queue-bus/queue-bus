@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 module QueueBus
   class Worker
-
     def self.perform(json)
       klass = nil
       attributes = ::QueueBus::Util.decode(json)
       begin
-        class_name = attributes["bus_class_proxy"]
+        class_name = attributes['bus_class_proxy']
         klass = ::QueueBus::Util.constantize(class_name)
       rescue NameError
         # not there anymore

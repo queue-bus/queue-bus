@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module QueueBus
   module Adapters
     class Base
@@ -19,12 +21,12 @@ module QueueBus
         raise NotImplementedError
       end
 
-      def enqueue(queue_name, klass, json)
+      def enqueue(_queue_name, _klass, _json)
         # enqueue the given class (Driver/Rider) in your queue
         raise NotImplementedError
       end
 
-      def enqueue_at(epoch_seconds, queue_name, klass, json)
+      def enqueue_at(_epoch_seconds, _queue_name, _klass, _json)
         # enqueue the given class (Publisher) in your queue to run at given time
         raise NotImplementedError
       end
