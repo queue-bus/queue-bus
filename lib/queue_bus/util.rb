@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'multi_json'
 
 module QueueBus
@@ -30,14 +32,14 @@ module QueueBus
         raise DecodeException, e.message, e.backtrace
       end
     end
-    
+
     def underscore(camel_cased_word)
       word = camel_cased_word.to_s.dup
       word.gsub!('::', '/')
       # word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-      word.tr!("-", "_")
+      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
+      word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      word.tr!('-', '_')
       word.downcase!
       word
     end
@@ -53,11 +55,11 @@ module QueueBus
       # string = string.sub(/^[a-z\d]*/) { inflections.acronyms[$&] || $&.capitalize }
       string = string.sub(/^[a-z\d]*/) { $&.capitalize }
       # string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{$2.capitalize}" }
-      string.gsub!(/\//, '::')
+      string.gsub!(%r{(?:_|(/))([a-z\d]*)}i) { "#{Regexp.last_match(1)}#{Regexp.last_match(2).capitalize}" }
+      string.gsub!(%r{/}, '::')
       string
     end
-    
+
     def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
@@ -75,6 +77,7 @@ module QueueBus
           constant = constant.ancestors.inject do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)
+
             const
           end
 
