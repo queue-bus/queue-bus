@@ -1,27 +1,29 @@
-module QueueBus
-  class TaskManager
+# frozen_string_literal: true
 
+module QueueBus
+  # A helper class for executing Rake tasks.
+  class TaskManager
     attr_reader :logging
-    
+
     def initialize(logging)
       @logging = logging
     end
-    
+
     def subscribe!
       count = 0
       ::QueueBus.dispatchers.each do |dispatcher|
         subscriptions = dispatcher.subscriptions
-        if subscriptions.size > 0
-          count += subscriptions.size
-          log "Subscribing #{dispatcher.app_key} to #{subscriptions.size} subscriptions"
-          app = ::QueueBus::Application.new(dispatcher.app_key)
-          app.subscribe(subscriptions, logging)
-          log "  ...done"
-        end
+        next if subscriptions.empty?
+
+        count += subscriptions.size
+        log "Subscribing #{dispatcher.app_key} to #{subscriptions.size} subscriptions"
+        app = ::QueueBus::Application.new(dispatcher.app_key)
+        app.subscribe(subscriptions, logging)
+        log '  ...done'
       end
       count
     end
-    
+
     def unsubscribe!
       count = 0
       ::QueueBus.dispatchers.each do |dispatcher|
@@ -29,10 +31,10 @@ module QueueBus
         app = ::QueueBus::Application.new(dispatcher.app_key)
         app.unsubscribe
         count += 1
-        log "  ...done"
+        log '  ...done'
       end
     end
-    
+
     def queue_names
       # let's not talk to redis in here. Seems to screw things up
       queues = []
@@ -41,10 +43,10 @@ module QueueBus
           queues << sub.queue_name
         end
       end
-      
+
       queues.uniq
     end
-    
+
     def log(message)
       puts(message) if logging
     end

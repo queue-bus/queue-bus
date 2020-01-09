@@ -1,8 +1,11 @@
-require "queue_bus/version"
-require "forwardable"
+# frozen_string_literal: true
 
+require 'queue_bus/version'
+require 'forwardable'
+
+# The main QueueBus module. Most operations you will need to execute should be executed
+# on this top level domain.
 module QueueBus
-
   autoload :Application,      'queue_bus/application'
   autoload :Config,           'queue_bus/config'
   autoload :Dispatch,         'queue_bus/dispatch'
@@ -22,25 +25,25 @@ module QueueBus
   autoload :Util,             'queue_bus/util'
   autoload :Worker,           'queue_bus/worker'
 
+  # A module for all adapters, current and future.
   module Adapters
     autoload :Base,           'queue_bus/adapters/base'
     autoload :Data,           'queue_bus/adapters/data'
   end
 
   class << self
-
     include Publishing
     extend Forwardable
 
     def_delegators :config, :default_app_key=, :default_app_key,
-                            :default_queue=, :default_queue,
-                            :local_mode=, :local_mode, :with_local_mode,
-                            :before_publish=, :before_publish_callback,
-                            :logger=, :logger, :log_application, :log_worker,
-                            :hostname=, :hostname,
-                            :adapter=, :adapter, :has_adapter?,
-                            :incoming_queue=, :incoming_queue,
-                            :redis, :worker_middleware_stack
+                   :default_queue=, :default_queue,
+                   :local_mode=, :local_mode, :with_local_mode,
+                   :before_publish=, :before_publish_callback,
+                   :logger=, :logger, :log_application, :log_worker,
+                   :hostname=, :hostname,
+                   :adapter=, :adapter, :has_adapter?,
+                   :incoming_queue=, :incoming_queue,
+                   :redis, :worker_middleware_stack
 
     def_delegators :_dispatchers, :dispatch, :dispatchers, :dispatcher_by_key, :dispatcher_execute
 

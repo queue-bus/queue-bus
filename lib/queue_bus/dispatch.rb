@@ -1,23 +1,25 @@
+# frozen_string_literal: true
+
 # Creates a DSL for apps to define their blocks to run for event_types
 
 module QueueBus
+  # A Dispatch object can be used to declare an application along with it's various subscriptions.
   class Dispatch
-
     attr_reader :app_key, :subscriptions
-    
+
     def initialize(app_key)
       @app_key = Application.normalize(app_key)
       @subscriptions = SubscriptionList.new
     end
-    
+
     def size
       @subscriptions.size
     end
-    
+
     def subscribe(key, matcher_hash = nil, &block)
-      dispatch_event("default", key, matcher_hash, block)
+      dispatch_event('default', key, matcher_hash, block)
     end
-    
+
     # allows definitions of other queues
     def method_missing(method_name, *args, &block)
       if args.size == 1 && block
@@ -28,7 +30,7 @@ module QueueBus
         super
       end
     end
-    
+
     def execute(key, attributes)
       sub = subscriptions.key(key)
       if sub
@@ -41,17 +43,17 @@ module QueueBus
     def subscription_matches(attributes)
       out = subscriptions.matches(attributes)
       out.each do |sub|
-        sub.app_key = self.app_key
+        sub.app_key = app_key
       end
       out
     end
-    
+
     def dispatch_event(queue, key, matcher_hash, block)
       # if not matcher_hash, assume key is a event_type regex
-      matcher_hash ||= { "bus_event_type" => key }
-      add_subscription("#{app_key}_#{queue}", key, "::QueueBus::Rider", matcher_hash, block)
+      matcher_hash ||= { 'bus_event_type' => key }
+      add_subscription("#{app_key}_#{queue}", key, '::QueueBus::Rider', matcher_hash, block)
     end
-    
+
     def add_subscription(queue_name, key, class_name, matcher_hash = nil, block)
       sub = Subscription.register(queue_name, key, class_name, matcher_hash, block)
       subscriptions.add(sub)
