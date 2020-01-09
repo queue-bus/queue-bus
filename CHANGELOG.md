@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Documented some of the major classes and modules
+
+### Fixed
+- Ran the rubocop autocorrect on the entire codebase.
+
 ## [0.9.0]
 
 ### Added
