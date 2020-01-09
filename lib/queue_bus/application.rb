@@ -1,33 +1,34 @@
+# frozen_string_literal: true
+
 module QueueBus
+  # An Application is the top level unifier for a number of subscriptions. It allows for
+  # the toggling of an entire applications subscriptions.
   class Application
-
     class << self
-
       def all
         # note the names arent the same as we started with
-        ::QueueBus.redis { |redis| redis.smembers(app_list_key).collect{ |val| new(val) } }
+        ::QueueBus.redis { |redis| redis.smembers(app_list_key).collect { |val| new(val) } }
       end
     end
 
     attr_reader :app_key, :redis_key
 
-
     def initialize(app_key)
       @app_key = self.class.normalize(app_key)
       @redis_key = "#{self.class.app_single_key}:#{@app_key}"
       # raise error if only other chars
-      raise "Invalid application name" if @app_key.gsub("_", "").size == 0
+      raise 'Invalid application name' if @app_key.gsub('_', '').empty?
     end
 
     def subscribe(subscription_list, log = false)
       @subscriptions = nil
 
-      if subscription_list == nil || subscription_list.size == 0
+      if subscription_list.nil? || subscription_list.empty?
         unsubscribe
         return true
       end
 
-      temp_key = "temp_#{redis_key}:#{rand(999999999)}"
+      temp_key = "temp_#{redis_key}:#{rand(999_999_999)}"
 
       ::QueueBus.redis do |redis|
         redis_hash = subscription_list.to_redis
@@ -39,9 +40,7 @@ module QueueBus
         redis.rename(temp_key, redis_key)
         redis.sadd(self.class.app_list_key, app_key)
 
-        if log
-          redis.hgetall(redis_key).inspect
-        end
+        redis.hgetall(redis_key).inspect if log
       end
 
       true
@@ -68,7 +67,7 @@ module QueueBus
     def subscription_matches(attributes)
       out = subscriptions.matches(attributes)
       out.each do |sub|
-        sub.app_key = self.app_key
+        sub.app_key = app_key
       end
       out
     end
@@ -84,15 +83,15 @@ module QueueBus
     protected
 
     def self.normalize(val)
-      val.to_s.gsub(/\W/, "_").downcase
+      val.to_s.gsub(/\W/, '_').downcase
     end
 
     def self.app_list_key
-      "bus_apps"
+      'bus_apps'
     end
 
     def self.app_single_key
-      "bus_app"
+      'bus_app'
     end
 
     def event_queues
@@ -116,6 +115,5 @@ module QueueBus
       end
       out
     end
-
   end
 end

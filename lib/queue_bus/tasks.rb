@@ -1,36 +1,40 @@
+# frozen_string_literal: true
+
 # require 'queue_bus/tasks'
-# will give you these tasks
+# A useful set of rake tasks for managing your bus
 
+# rubocop:disable Metrics/BlockLength
 namespace :queuebus do
-
-  desc "Subscribes this application to QueueBus events"
-  task :subscribe => [ :preload ] do
+  desc 'Subscribes this application to QueueBus events'
+  task subscribe: [:preload] do
     manager = ::QueueBus::TaskManager.new(true)
     count = manager.subscribe!
-    raise "No subscriptions created" if count == 0
+    raise 'No subscriptions created' if count == 0
   end
 
-  desc "Unsubscribes this application from QueueBus events"
-  task :unsubscribe => [ :preload ] do
+  desc 'Unsubscribes this application from QueueBus events'
+  task unsubscribe: [:preload] do
     manager = ::QueueBus::TaskManager.new(true)
     count = manager.unsubscribe!
-    puts "No subscriptions unsubscribed" if count == 0
+    puts 'No subscriptions unsubscribed' if count == 0
   end
 
-  desc "List QueueBus queues that need worked"
-  task :queues => [ :preload ] do
+  desc 'List QueueBus queues that need worked'
+  task queues: [:preload] do
     manager = ::QueueBus::TaskManager.new(false)
     queues = manager.queue_names + ['bus_incoming']
-    puts queues.join(", ")
+    puts queues.join(', ')
   end
 
-  desc "list time based subscriptions"
-  task :list_scheduled => [ :preload ] do
+  desc 'list time based subscriptions'
+  task list_scheduled: [:preload] do
     scheduled_list = QueueBus::Application.all.flat_map do |app|
       app.send(:subscriptions).all
-        .select { |s| s.matcher.filters['bus_event_type'] == 'heartbeat_minutes'  }
+         .select { |s| s.matcher.filters['bus_event_type'] == 'heartbeat_minutes' }
     end
-    scheduled_text_list = scheduled_list.collect { |e| [ e.key, e.matcher.filters['hour'] || "*", e.matcher.filters['minute'] || "*" ] }
+    scheduled_text_list = scheduled_list.collect do |e|
+      [e.key, e.matcher.filters['hour'] || '*', e.matcher.filters['minute'] || '*']
+    end
     puts 'key, hour, minute'
     puts scheduled_text_list.sort_by { |(_, hour, minute)| [hour.to_i, minute.to_i] }.map(&:to_csv)
   end
@@ -41,3 +45,4 @@ namespace :queuebus do
     require 'queue-bus'
   end
 end
+# rubocop:enable Metrics/BlockLength
