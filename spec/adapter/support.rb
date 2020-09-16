@@ -5,7 +5,11 @@ require 'redis'
 def reset_test_adapter
   QueueBus.send(:reset)
   QueueBus.adapter = :data
-  QueueBus.adapter.redis = Redis.new
+  QueueBus.adapter.redis = if ENV['REDIS_URL']
+                             Redis.new(url: ENV['REDIS_URL'])
+                           else
+                             Redis.new
+                           end
 end
 
 def adapter_under_test_class
