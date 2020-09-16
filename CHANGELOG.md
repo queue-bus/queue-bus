@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Ran the rubocop autocorrect on the entire codebase.
+- Fixed issue that prevented heartbeat events from firing under certain conditions
 
 ## [0.9.0]
 
