@@ -55,7 +55,7 @@ module QueueBus
         case environment_name
         when 'development', 'test'
           # only 3 minutes in development; otherwise, TONS of events if not run in a while
-          three_ago = Time.now.to_i - 3 * 60 * 60
+          three_ago = Time.now.to_i / 60 - 3
           key = three_ago if key.to_i < three_ago
         end
         key.to_i
