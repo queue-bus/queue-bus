@@ -128,6 +128,7 @@ module QueueBus
 
           expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to eq(["other"])
           expect(QueueBus.redis { |redis| redis.hlen("bus_app:myapp") }).to eq(0)
+          expect(QueueBus.redis { |redis| redis.hlen("bus_app:other") }).to eq(1)
         end
       end
 
