@@ -32,6 +32,7 @@ module QueueBus
 
       ::QueueBus.redis do |redis|
         redis_hash = subscription_list.to_redis
+
         redis_hash.each do |key, hash|
           redis.hset(temp_key, key, QueueBus::Util.encode(hash))
         end
@@ -46,8 +47,17 @@ module QueueBus
       true
     end
 
+    def unsubscribe_queue(queue)
+      # Filters out all subscriptions that match the supplied queue name.
+      ::QueueBus.redis do |redis|
+        read_redis_hash.each do |key, hash_details|
+          redis.hdel(redis_key, key) if queue == hash_details["queue_name"]
+        end
+      end
+    end
+
     def unsubscribe
-      # TODO: clean up known queues?
+      # Remove everything.
       ::QueueBus.redis do |redis|
         redis.srem(self.class.app_list_key, app_key)
         redis.del(redis_key)

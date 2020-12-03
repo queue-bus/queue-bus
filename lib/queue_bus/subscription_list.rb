@@ -46,6 +46,12 @@ module QueueBus
       @subscriptions[sub.key] = sub
     end
 
+    def remove(sub)
+      raise "Key #{sub.key} doesn't exist in the #{sub.queue_name} queue!" unless @subscriptions.key?(sub.key)
+
+      @subscriptions.delete(sub.key)
+    end
+
     def size
       @subscriptions.size
     end
