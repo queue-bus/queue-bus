@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0]
+
+### Added
+- Ability to unsubscribe from specific queues in an application (`Application#unsubscribe_queue`).
+- `rake queuebus:unsubscribe` can now take two parameters to unsubscribe from specific queues, e.g. `rake queuebus:unsubscribe[my_app_key, my_queue_name]`.
+
 ## [0.9.1]
 
 ### Added
