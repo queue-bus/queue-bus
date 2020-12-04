@@ -24,6 +24,13 @@ module QueueBus
       count
     end
 
+    def unsubscribe_queue!(app_key, queue)
+      log "Unsubcribing #{queue} from #{app_key}"
+      app = ::QueueBus::Application.new(app_key)
+      app.unsubscribe_queue(queue)
+      log "  ...done"
+    end
+
     def unsubscribe!
       count = 0
       ::QueueBus.dispatchers.each do |dispatcher|

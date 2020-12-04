@@ -48,5 +48,31 @@ module QueueBus
                            'key2' => { 'queue_name' => 'else_ok', 'key' => 'key2', 'class' => 'MyClass', 'matcher' => { 'bus_event_type' => 'event_two' } })
       end
     end
+
+    context "when modifying the subscription" do
+      let(:list) { SubscriptionList.new }
+      let(:subscription_1) { Subscription.new("default", "key1", "MyClass", {"bus_event_type" => "event_one"}) }
+      let(:subscription_2) { Subscription.new("else_ok", "key2", "MyClass", {"bus_event_type" => "event_two"}) }
+
+      context "when adding subscriptions" do
+        it "adds the subscription successfully" do
+          list.add(subscription_1)
+          list.add(subscription_2)
+
+          expect(list.to_redis).to eq(
+            {
+              "key1" => {"queue_name" => "default", "key" => "key1", "class" => "MyClass", "matcher" => {"bus_event_type" => "event_one"}},
+              "key2" => {"queue_name" => "else_ok", "key" => "key2", "class" => "MyClass", "matcher" => {"bus_event_type" => "event_two"}}
+            }
+          )
+        end
+
+        it "errors if the subscription already exists" do
+          list.add(subscription_1)
+
+          expect { list.add(subscription_1) }.to raise_exception(RuntimeError, /Duplicate key/)
+        end
+      end
+    end
   end
 end

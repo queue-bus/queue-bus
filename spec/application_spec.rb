@@ -102,16 +102,58 @@ module QueueBus
       end
     end
 
-    describe '#unsubscribe' do
-      it 'should remove items' do
-        QueueBus.redis { |redis| redis.sadd('bus_apps', 'myapp') }
-        QueueBus.redis { |redis| redis.sadd('bus_apps', 'other') }
-        QueueBus.redis { |redis| redis.hset('bus_app:myapp', 'event_one', 'myapp_default') }
+    describe "#unsubscribe" do
+      context "when a queue is not specified" do
+        it "removes all subscriptions" do
+          myapp_list = SubscriptionList.new
+          other_list = SubscriptionList.new
 
-        Application.new('myapp').unsubscribe
+          subscription_1 = Subscription.new("myapp_default", "key1", "MyClass1", {"bus_event_type" => "event_one"})
+          subscription_2 = Subscription.new("myapp_default", "key2", "MyClass2", {"bus_event_type" => "event_two"})
+          subscription_3 = Subscription.new("myapp_other_queue", "key1", "MyClass1", {"bus_event_type" => "event_one"})
 
-        expect(QueueBus.redis { |redis| redis.smembers('bus_apps') }).to eq(['other'])
-        expect(QueueBus.redis { |redis| redis.get('bus_app:myapp') }).to be_nil
+          myapp_list.add(subscription_1)
+          myapp_list.add(subscription_2)
+          other_list.add(subscription_3)
+
+          Application.new("myapp").subscribe(myapp_list)
+          Application.new("other").subscribe(other_list)
+
+          expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({
+            "key1" => "{\"queue_name\":\"myapp_default\",\"key\":\"key1\",\"class\":\"MyClass1\",\"matcher\":{\"bus_event_type\":\"event_one\"}}",
+            "key2" => "{\"queue_name\":\"myapp_default\",\"key\":\"key2\",\"class\":\"MyClass2\",\"matcher\":{\"bus_event_type\":\"event_two\"}}"
+          })
+
+          Application.new("myapp").unsubscribe
+
+          expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to eq(["other"])
+          expect(QueueBus.redis { |redis| redis.hlen("bus_app:myapp") }).to eq(0)
+          expect(QueueBus.redis { |redis| redis.hlen("bus_app:other") }).to eq(1)
+        end
+      end
+
+      context "when a queue is specified" do
+        it "removes only that key" do
+          list = SubscriptionList.new
+
+          subscription_1 = Subscription.new("myapp_default", "key1", "MyClass1", {"bus_event_type" => "event_one"})
+          subscription_2 = Subscription.new("myapp_other_queue", "key2", "MyClass2", {"bus_event_type" => "event_two"})
+
+          list.add(subscription_1)
+          list.add(subscription_2)
+
+          Application.new("myapp").subscribe(list)
+
+          expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({
+            "key1" => "{\"queue_name\":\"myapp_default\",\"key\":\"key1\",\"class\":\"MyClass1\",\"matcher\":{\"bus_event_type\":\"event_one\"}}",
+            "key2" => "{\"queue_name\":\"myapp_other_queue\",\"key\":\"key2\",\"class\":\"MyClass2\",\"matcher\":{\"bus_event_type\":\"event_two\"}}"
+          })
+
+          Application.new("myapp").unsubscribe_queue("myapp_default")
+
+          expect(QueueBus.redis { |redis| redis.smembers("bus_apps") }).to eq(["myapp"])
+          expect(QueueBus.redis { |redis| redis.hgetall("bus_app:myapp") }).to eq({"key2" => "{\"queue_name\":\"myapp_other_queue\",\"key\":\"key2\",\"class\":\"MyClass2\",\"matcher\":{\"bus_event_type\":\"event_two\"}}"})
+        end
       end
     end
 

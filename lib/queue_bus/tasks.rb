@@ -12,11 +12,19 @@ namespace :queuebus do
     raise 'No subscriptions created' if count == 0
   end
 
-  desc 'Unsubscribes this application from QueueBus events'
-  task unsubscribe: [:preload] do
+  desc "Unsubscribes this application from QueueBus events"
+  task :unsubscribe, [:app_key, :queue] => [ :preload ] do |task, args|
+    app_key = args[:app_key]
+    queue = args[:queue]
     manager = ::QueueBus::TaskManager.new(true)
-    count = manager.unsubscribe!
-    puts 'No subscriptions unsubscribed' if count == 0
+
+    if app_key && queue
+      manager.unsubscribe_queue!(app_key, queue)
+    else
+      manager = ::QueueBus::TaskManager.new(true)
+      count = manager.unsubscribe!
+      puts "No subscriptions unsubscribed" if count == 0
+    end
   end
 
   desc 'List QueueBus queues that need worked'
