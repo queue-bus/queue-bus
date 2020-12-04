@@ -73,25 +73,6 @@ module QueueBus
           expect { list.add(subscription_1) }.to raise_exception(RuntimeError, /Duplicate key/)
         end
       end
-
-      context "when removing subscriptions" do
-        it "removes the subscription successfully" do
-          list.add(subscription_1)
-          list.add(subscription_2)
-
-          list.remove(subscription_1)
-
-          expect(list.to_redis).to eq(
-            {
-              "key2" => {"queue_name" => "else_ok", "key" => "key2", "class" => "MyClass", "matcher" => {"bus_event_type" => "event_two"}},
-            }
-          )
-        end
-
-        it "errors if the subscription can't be found" do
-          expect { list.remove(Subscription.new("other_sub", "other_key", "other_class", {})) }.to raise_exception(RuntimeError, /doesn't exist/)
-        end
-      end
     end
   end
 end
