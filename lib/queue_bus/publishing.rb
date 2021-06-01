@@ -30,6 +30,7 @@ module QueueBus
       bus_attr = { 'bus_published_at' => Time.now.to_i, 'bus_event_type' => event_type }
       bus_attr['bus_id']           = "#{Time.now.to_i}-#{generate_uuid}"
       bus_attr['bus_app_hostname'] = ::QueueBus.hostname
+      bus_attr['bus_context'] = ::QueueBus.context
       if defined?(I18n) && I18n.respond_to?(:locale) && I18n.locale
         bus_attr['bus_locale']       = I18n.locale.to_s
       end
