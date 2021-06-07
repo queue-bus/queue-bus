@@ -71,6 +71,28 @@ describe 'Publishing an event' do
     expect(myval).to eq(1)
   end
 
+  it 'should add context metadata if using with_context' do
+    expect(QueueBus.context).to be_nil
+
+    bus_context = 'batch_processing'
+    hash = { :one => 1, 'two' => 'here', 'bus_id' => 'app-given' }
+
+    event_name = 'event_name'
+    
+    QueueBus.in_context(:batch_processing) do
+      QueueBus.publish(event_name, hash)
+    end
+    
+    val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
+    hash = JSON.parse(val)
+
+    att = JSON.parse(hash['args'].first)
+    expect(att['bus_context']).to eq(bus_context)
+
+    expect(QueueBus.context).to be_nil
+
+  end
+
   it 'should set the timezone and locale if available' do
     expect(defined?(I18n)).to be_nil
     expect(Time.respond_to?(:zone)).to eq(false)
