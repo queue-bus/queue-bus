@@ -36,7 +36,7 @@ describe 'Publishing an event in the future' do
 
     expect(hash['class']).to eq('QueueBus::Worker')
     expect(hash['args'].size).to eq(1)
-    expect(JSON.parse(hash['args'].first)).to eq({ 'bus_class_proxy' => 'QueueBus::Publisher', 'bus_event_type' => 'event_name', 'two' => 'here', 'one' => 1, 'id' => 12 }.merge(delayed_attrs))
+    expect(JSON.parse(hash['args'].first)).to eq({ 'bus_class_proxy' => 'QueueBus::Publisher', 'bus_event_type' => 'event_name', "bus_context" => nil, 'two' => 'here', 'one' => 1, 'id' => 12 }.merge(delayed_attrs))
     expect(hash['queue']).to eq('bus_incoming')
 
     val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
@@ -49,6 +49,6 @@ describe 'Publishing an event in the future' do
     hash = JSON.parse(val)
     expect(hash['class']).to eq('QueueBus::Worker')
     expect(hash['args'].size).to eq(1)
-    expect(JSON.parse(hash['args'].first)).to eq({ 'bus_class_proxy' => 'QueueBus::Driver', 'bus_event_type' => 'event_name', 'two' => 'here', 'one' => 1, 'id' => 12 }.merge(bus_attrs))
+    expect(JSON.parse(hash['args'].first)).to eq({ 'bus_class_proxy' => 'QueueBus::Driver', 'bus_event_type' => 'event_name', "bus_context" => nil, 'two' => 'here', 'one' => 1, 'id' => 12 }.merge(bus_attrs))
   end
 end
