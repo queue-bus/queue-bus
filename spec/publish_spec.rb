@@ -71,7 +71,7 @@ describe 'Publishing an event' do
     expect(myval).to eq(1)
   end
 
-  it 'should add context metadata if using with_context' do
+  it 'should add context metadata if wrapping publisher with in_context' do
     expect(QueueBus.context).to be_nil
 
     bus_context = 'batch_processing'
