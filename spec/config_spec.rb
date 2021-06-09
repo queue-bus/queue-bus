@@ -61,6 +61,41 @@ describe 'QueueBus config' do
     end
   end
 
+  describe '#in_context' do
+    it 'sets the context on the thread' do
+      QueueBus.in_context(:batch_processing) do
+        expect(QueueBus.context).to eq(:batch_processing)
+        Thread.new { expect(QueueBus.context).to eq nil }.join
+      end
+    end
+
+    it 'supports nesting' do
+      QueueBus.in_context(:batch_processing) do
+        expect(QueueBus.context).to eq :batch_processing
+        QueueBus.in_context(:processing) do
+          expect(QueueBus.context).to eq :processing
+        end
+        expect(QueueBus.context).to eq :batch_processing
+      end
+    end
+
+    it 'respects an override of nil' do
+      QueueBus.context = :batch_processing
+      QueueBus.in_context(nil) do
+        expect(QueueBus.context).to eq nil
+      end
+      QueueBus.context = :batch_processing
+    end
+
+    it 'resets to the original context after the block' do
+      expect(QueueBus.context).to eq nil
+      QueueBus.in_context(:batch_processing) do
+        expect(QueueBus.context).to eq :batch_processing
+      end
+      expect(QueueBus.context).to eq nil
+    end
+  end
+
   it 'sets the hostname' do
     expect(QueueBus.hostname).not_to eq(nil)
     QueueBus.hostname = 'whatever'

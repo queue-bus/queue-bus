@@ -9,7 +9,7 @@ module QueueBus
     attr_accessor :default_queue, :hostname, :incoming_queue, :logger
 
     attr_reader :worker_middleware_stack
-    attr_writer :local_mode
+    attr_writer :local_mode, :context
 
     def initialize
       @worker_middleware_stack = QueueBus::Middleware::Stack.new
@@ -24,6 +24,7 @@ module QueueBus
     Wrap = Struct.new(:value)
 
     LOCAL_MODE_VAR = :queue_bus_local_mode
+    CONTEXT_VAR = :queue_bus_context
 
     # Returns the current local mode of QueueBus
     def local_mode
@@ -31,6 +32,15 @@ module QueueBus
         Thread.current.thread_variable_get(LOCAL_MODE_VAR).value
       else
         @local_mode
+      end
+    end
+
+    # Returns the current context of QueueBus
+    def context
+      if Thread.current.thread_variable_get(CONTEXT_VAR).is_a?(Wrap)
+        Thread.current.thread_variable_get(CONTEXT_VAR).value
+      else
+        @context
       end
     end
 
@@ -44,6 +54,17 @@ module QueueBus
       yield if block_given?
     ensure
       Thread.current.thread_variable_set(LOCAL_MODE_VAR, previous)
+    end
+
+    # Overrides the current bus context (if any) for the duration of a block, adding a
+    # `bus_context` attribute set to this value for all events published in this scope. 
+    # This is a threadsafe implementation. After, the global setting will be resumed.
+    def in_context(context)
+      previous = Thread.current.thread_variable_get(CONTEXT_VAR)
+      Thread.current.thread_variable_set(CONTEXT_VAR, Wrap.new(context))
+      yield if block_given?
+    ensure
+      Thread.current.thread_variable_set(CONTEXT_VAR, previous)
     end
 
     def adapter=(val)
