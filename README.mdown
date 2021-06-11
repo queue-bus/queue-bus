@@ -162,7 +162,7 @@ In context
 
 ```ruby
 QueueBus.in_context('some_context') do
-  # Context attribute will be set for all events published within this scope
+  # Context attribute will be set for all events published within this scope.
 end
 ```
 
