@@ -6,9 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0]
+
 ### Added
 
-## [0.11.0]
 - Adds `QueueBus.in_context` method. Useful when working with a multithreaded environment to add a description for all events published within this scope.
 
 ## [0.10.0]
