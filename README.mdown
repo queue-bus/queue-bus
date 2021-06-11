@@ -141,13 +141,16 @@ event to the appropriate code block.
 You can also say `QueueBus.local_mode = :suppress` to turn off publishing altogether.
 This can be helpful inside some sort of migration, for example.
 
-#### Thread Safe Local Modes
+#### Thread Safe Options
 
 **!! This is important if you are using workers that utilize multiple threads, such as Sidekiq !!**
 
 The above setting is global to the ruby process and modifying it will impact all threads that are
 currently using QueueBus. If you want to isolate a thread or block of code from QueueBus, you can
-use the method `with_local_mode`:
+use the methods `with_local_mode` or `in_context`:
+
+
+With local mode
 
 ```ruby
 QueueBus.with_local_mode(:suppress) do
@@ -155,7 +158,16 @@ QueueBus.with_local_mode(:suppress) do
 end
 ```
 
-The previous value of `local_mode` will be restored after the block exits.
+In context
+
+```ruby
+QueueBus.in_context('some_context') do
+  # Context attribute will be set for all events published within this scope.
+end
+```
+
+
+The previous values will be restored after the block exits.
 
 ### TODO
 
