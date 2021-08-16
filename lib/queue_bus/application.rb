@@ -7,7 +7,22 @@ module QueueBus
     class << self
       def all
         # note the names arent the same as we started with
-        ::QueueBus.redis { |redis| redis.smembers(app_list_key).collect { |val| new(val) } }
+        ::QueueBus.redis do |redis|
+          app_keys = redis.smembers(app_list_key)
+          apps = app_keys.collect { |val| new(val) }
+
+          hashes = redis.pipelined do
+            apps.each do |app|
+              redis.hgetall(app.redis_key)
+            end
+          end
+
+          apps.zip(hashes).each do |app, hash|
+            app._hydrate_redis_hash(hash)
+          end
+
+          apps
+        end
       end
     end
 
@@ -90,6 +105,10 @@ module QueueBus
       out
     end
 
+    def _hydrate_redis_hash(hash)
+      @raw_redis_hash = hash
+    end
+
     protected
 
     def self.normalize(val)
@@ -114,16 +133,24 @@ module QueueBus
 
     def read_redis_hash
       out = {}
-      ::QueueBus.redis do |redis|
-        redis.hgetall(redis_key).each do |key, val|
-          begin
-            out[key] = ::QueueBus::Util.decode(val)
-          rescue ::QueueBus::Util::DecodeException
-            out[key] = val
-          end
+      raw_redis_hash.each do |key, val|
+        begin
+          out[key] = ::QueueBus::Util.decode(val)
+        rescue ::QueueBus::Util::DecodeException
+          out[key] = val
         end
       end
       out
+    end
+
+    private
+
+    def raw_redis_hash
+      return @raw_redis_hash if @raw_redis_hash
+
+      ::QueueBus.redis do |redis|
+        redis.hgetall(redis_key)
+      end
     end
   end
 end
