@@ -16,6 +16,39 @@ module QueueBus
       @subscriptions.size
     end
 
+    def on_heartbeat(key, minute: nil, hour: nil, minute_interval: nil, hour_interval: nil, &block) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/ParameterLists, Metrics/CyclomaticComplexity, Metrics/AbcSize
+      if minute_interval && !minute_interval.positive?
+        raise ArgumentError, 'minute_interval must be a positive integer'
+      end
+
+      if hour_interval && !hour_interval.positive?
+        raise ArgumentError, 'hour_interval must be a positive integer'
+      end
+
+      matcher = { bus_event_type: :heartbeat_minutes }
+
+      if minute
+        raise ArgumentError, 'minute must be a positive integer' unless minute.positive?
+
+        matcher['minute'] = minute
+      end
+
+      if hour
+        raise ArgumentError, 'hour must be a positive integer' unless hour.positive?
+
+        matcher['hour'] = hour
+      end
+
+      subscribe(key, matcher) do |event|
+        if (minute_interval.nil? || (event['minute'] % minute_interval).zero?) &&
+           (hour_interval.nil? || (event['hour'] % hour_interval).zero?)
+
+          # Yield the block passed in.
+          block.call
+        end
+      end
+    end
+
     def subscribe(key, matcher_hash = nil, &block)
       dispatch_event('default', key, matcher_hash, block)
     end

@@ -28,6 +28,137 @@ module QueueBus
       end.not_to raise_error
     end
 
+    describe '#on_heartbeat' do
+      let(:dispatch) { Dispatch.new('heartbeat') }
+      let(:event) { { bus_event_type: :heartbeat_minutes } }
+      let(:event_name) { 'my-event' }
+
+      context 'when not declaring anything' do
+        before do
+          dispatch.on_heartbeat event_name do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'runs on every heart beat' do
+          (0..24).each do |hour|
+            (0..60).each do |minute|
+              expect do
+                dispatch.execute(
+                  event_name, event.merge('hour' => hour, 'minute' => minute)
+                )
+              end.to change(Runner2, :value).by(1)
+            end
+          end
+        end
+      end
+
+      context 'when running on hour 8' do
+        before do
+          dispatch.on_heartbeat event_name, hour: 8 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'subscribes to hour 8' do
+          expect(dispatch.subscriptions.all.first.matcher.filters).to eq('bus_event_type' => 'heartbeat_minutes', 'hour' => '8')
+        end
+      end
+
+      context 'when running on minute 4' do
+        before do
+          dispatch.on_heartbeat event_name, minute: 4 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'subscribes to minute 4' do
+          expect(dispatch.subscriptions.all.first.matcher.filters).to eq('bus_event_type' => 'heartbeat_minutes', 'minute' => '4')
+        end
+      end
+
+      context 'when running on minute 4 and hour 8' do
+        before do
+          dispatch.on_heartbeat event_name, hour: 8, minute: 4 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'subscribes to minute 4 and hour 8' do
+          expect(dispatch.subscriptions.all.first.matcher.filters)
+            .to eq('bus_event_type' => 'heartbeat_minutes', 'minute' => '4', 'hour' => '8')
+        end
+      end
+
+      context 'when declaring minute intervals' do
+        before do
+          dispatch.on_heartbeat event_name, minute_interval: 5 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'runs the runner when the minute buzzes (modulos to 5)' do
+          (0..60).each do |minute|
+            if minute % 5 == 0
+              expect { dispatch.execute(event_name, event.merge('minute' => minute)) }
+                .to change(Runner2, :value).by(1)
+            else
+              expect { dispatch.execute(event_name, event.merge('minute' => minute)) }
+                .not_to change(Runner2, :value)
+            end
+          end
+        end
+      end
+
+      context 'when declaring hour intervals' do
+        before do
+          dispatch.on_heartbeat event_name, hour_interval: 3 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'runs the runner when the hour fizzes (modulos to 3)' do
+          (0..60).each do |hour|
+            if hour % 3 == 0
+              expect { dispatch.execute(event_name, event.merge('hour' => hour)) }
+                .to change(Runner2, :value).by(1)
+            else
+              expect { dispatch.execute(event_name, event.merge('hour' => hour)) }
+                .not_to change(Runner2, :value)
+            end
+          end
+        end
+      end
+
+      context 'when declaring hour and minute intervals' do
+        before do
+          dispatch.on_heartbeat event_name, minute_interval: 5, hour_interval: 3 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'runs the runner when the time fizzbuzzes (modulos to 3 and 5)' do
+          (0..24).each do |hour|
+            (0..60).each do |minute|
+              if hour % 3 == 0 && minute % 5 == 0
+                expect do
+                  dispatch.execute(
+                    event_name, event.merge('hour' => hour, 'minute' => minute)
+                  )
+                end.to change(Runner2, :value).by(1)
+              else
+                expect do
+                  dispatch.execute(
+                    event_name, event.merge('hour' => hour, 'minute' => minute)
+                  )
+                end.not_to change(Runner2, :value)
+              end
+            end
+          end
+        end
+      end
+    end
+
     describe 'Top Level' do
       before(:each) do
         QueueBus.dispatch('testit') do

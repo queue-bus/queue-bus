@@ -63,6 +63,16 @@ QueueBus.dispatch("app_b") do
   subscribe "my_key", { "user_id" => :present, "page" => "homepage"} do
     Mixpanel.homepage_action!(attributes["action"])
   end
+
+  # You may also declare a subscription to heartbeat events. This is a helper function
+  # that works along with subscribe to make scheduling regular events easier.
+  #
+  #   minute_interval: Executes every n minutes
+  #   hour_interval:   Executes every n hours
+  #   minute:          Executes on this minute
+  #   hour:            Executes on this hour
+  on_heartbeat "my_heartbeat_event", minute_interval: 5 do |attributes|
+  end
 end
 ```
 
