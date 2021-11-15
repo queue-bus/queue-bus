@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixes
+
+- Fixes the math used in the heartbeat helper by properly converting it to an integer.
+
 ## [0.13.0]
 
 ### Added

@@ -40,8 +40,8 @@ module QueueBus
       end
 
       subscribe(key, matcher) do |event|
-        if (minute_interval.nil? || (event['minute'] % minute_interval).zero?) &&
-           (hour_interval.nil? || (event['hour'] % hour_interval).zero?)
+        if (minute_interval.nil? || (event['minute'].to_i % minute_interval).zero?) &&
+           (hour_interval.nil?   || (event['hour'].to_i   % hour_interval).zero?)
 
           # Yield the block passed in.
           block.call

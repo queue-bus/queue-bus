@@ -44,9 +44,7 @@ module QueueBus
           (0..24).each do |hour|
             (0..60).each do |minute|
               expect do
-                dispatch.execute(
-                  event_name, event.merge('hour' => hour, 'minute' => minute)
-                )
+                dispatch.execute(event_name, event.merge('hour' => hour.to_s, 'minute' => minute.to_s))
               end.to change(Runner2, :value).by(1)
             end
           end
@@ -100,10 +98,10 @@ module QueueBus
         it 'runs the runner when the minute buzzes (modulos to 5)' do
           (0..60).each do |minute|
             if minute % 5 == 0
-              expect { dispatch.execute(event_name, event.merge('minute' => minute)) }
+              expect { dispatch.execute(event_name, event.merge('minute' => minute.to_s)) }
                 .to change(Runner2, :value).by(1)
             else
-              expect { dispatch.execute(event_name, event.merge('minute' => minute)) }
+              expect { dispatch.execute(event_name, event.merge('minute' => minute.to_s)) }
                 .not_to change(Runner2, :value)
             end
           end
@@ -120,10 +118,10 @@ module QueueBus
         it 'runs the runner when the hour fizzes (modulos to 3)' do
           (0..60).each do |hour|
             if hour % 3 == 0
-              expect { dispatch.execute(event_name, event.merge('hour' => hour)) }
+              expect { dispatch.execute(event_name, event.merge('hour' => hour.to_s)) }
                 .to change(Runner2, :value).by(1)
             else
-              expect { dispatch.execute(event_name, event.merge('hour' => hour)) }
+              expect { dispatch.execute(event_name, event.merge('hour' => hour.to_s)) }
                 .not_to change(Runner2, :value)
             end
           end
@@ -142,9 +140,8 @@ module QueueBus
             (0..60).each do |minute|
               if hour % 3 == 0 && minute % 5 == 0
                 expect do
-                  dispatch.execute(
-                    event_name, event.merge('hour' => hour, 'minute' => minute)
-                  )
+                  dispatch.execute(event_name,
+                                   event.merge('hour' => hour.to_s, 'minute' => minute.to_s))
                 end.to change(Runner2, :value).by(1)
               else
                 expect do
