@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Adds `Dispatch#on_heartbeatch` which is a helper function for specifying heartbeat subscriptions.
+- Adds `Dispatch#on_heartbeat` which is a helper function for specifying heartbeat subscriptions.
 
 ## [0.12.0]
 
