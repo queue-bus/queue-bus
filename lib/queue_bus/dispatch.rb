@@ -50,7 +50,7 @@ module QueueBus
            (hour_interval.nil? || (event['hour'] % hour_interval).zero?)
 
           # Yield the block passed in.
-          block.call
+          block.call(event)
         end
       end
     end
