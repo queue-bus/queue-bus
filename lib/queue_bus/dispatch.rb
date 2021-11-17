@@ -16,7 +16,7 @@ module QueueBus
       @subscriptions.size
     end
 
-    def on_heartbeat(key, minute: nil, hour: nil, minute_interval: nil, hour_interval: nil, &block) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/ParameterLists, Metrics/CyclomaticComplexity, Metrics/AbcSize
+    def on_heartbeat(key, minute: nil, hour: nil, wday: nil, minute_interval: nil, hour_interval: nil, &block) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/ParameterLists, Metrics/CyclomaticComplexity, Metrics/AbcSize, Metrics/LineLength
       if minute_interval && !minute_interval.positive?
         raise ArgumentError, 'minute_interval must be a positive integer'
       end
@@ -28,15 +28,21 @@ module QueueBus
       matcher = { bus_event_type: :heartbeat_minutes }
 
       if minute
-        raise ArgumentError, 'minute must be a positive integer' unless minute.positive?
+        raise ArgumentError, 'minute must not be negative' if minute.negative?
 
         matcher['minute'] = minute
       end
 
       if hour
-        raise ArgumentError, 'hour must be a positive integer' unless hour.positive?
+        raise ArgumentError, 'hour must not be negative' if hour.negative?
 
         matcher['hour'] = hour
+      end
+
+      if wday
+        raise ArgumentError, 'wday must not be negative' if wday.negative?
+
+        matcher['wday'] = wday
       end
 
       subscribe(key, matcher) do |event|

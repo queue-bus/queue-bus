@@ -61,7 +61,8 @@ module QueueBus
         end
 
         it 'subscribes to hour 8' do
-          expect(dispatch.subscriptions.all.first.matcher.filters).to eq('bus_event_type' => 'heartbeat_minutes', 'hour' => '8')
+          expect(dispatch.subscriptions.all.first.matcher.filters)
+            .to eq('bus_event_type' => 'heartbeat_minutes', 'hour' => '8')
         end
       end
 
@@ -73,7 +74,8 @@ module QueueBus
         end
 
         it 'subscribes to minute 4' do
-          expect(dispatch.subscriptions.all.first.matcher.filters).to eq('bus_event_type' => 'heartbeat_minutes', 'minute' => '4')
+          expect(dispatch.subscriptions.all.first.matcher.filters)
+            .to eq('bus_event_type' => 'heartbeat_minutes', 'minute' => '4')
         end
       end
 
@@ -87,6 +89,19 @@ module QueueBus
         it 'subscribes to minute 4 and hour 8' do
           expect(dispatch.subscriptions.all.first.matcher.filters)
             .to eq('bus_event_type' => 'heartbeat_minutes', 'minute' => '4', 'hour' => '8')
+        end
+      end
+
+      context 'when running on wday 2' do
+        before do
+          dispatch.on_heartbeat event_name, wday: 2 do |_event|
+            Runner2.run({})
+          end
+        end
+
+        it 'subscribes to wday 2' do
+          expect(dispatch.subscriptions.all.first.matcher.filters)
+            .to eq('bus_event_type' => 'heartbeat_minutes', 'wday' => '2')
         end
       end
 

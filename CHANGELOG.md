@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixes
+
+- Allows matching on 0 via the `on_heartbeat` subscription
+
+### Added
+
+- Allows matching on `wday` via the `on_heartbeat` subscription
+
 ## [0.13.0]
 
 ### Added
