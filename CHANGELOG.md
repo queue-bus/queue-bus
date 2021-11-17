@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixes
+
+- Properly passes the attributes down to the subscription when using `on_heartbeat`
+
 ## [0.13.1]
 
 ### Fixes

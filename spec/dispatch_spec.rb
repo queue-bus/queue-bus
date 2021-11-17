@@ -33,6 +33,14 @@ module QueueBus
       let(:event) { { bus_event_type: :heartbeat_minutes } }
       let(:event_name) { 'my-event' }
 
+      it 'passes on the event' do
+        dispatch.on_heartbeat event_name do |event|
+          expect(event).to match hash_including('hour' => 1, 'minute' => 0)
+        end
+
+        dispatch.execute(event_name, 'hour' => 1, 'minute' => 0)
+      end
+
       context 'when not declaring anything' do
         before do
           dispatch.on_heartbeat event_name do |_event|
