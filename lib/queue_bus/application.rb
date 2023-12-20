@@ -11,9 +11,9 @@ module QueueBus
           app_keys = redis.smembers(app_list_key)
           apps = app_keys.collect { |val| new(val) }
 
-          hashes = redis.pipelined do
+          hashes = redis.pipelined do |p|
             apps.each do |app|
-              redis.hgetall(app.redis_key)
+              p.hgetall(app.redis_key)
             end
           end
 
