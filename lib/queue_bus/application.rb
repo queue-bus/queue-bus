@@ -54,7 +54,7 @@ module QueueBus
 
         # make it the real one
         redis.rename(temp_key, redis_key)
-        redis.sadd(self.class.app_list_key, app_key)
+        redis.sadd?(self.class.app_list_key, app_key)
 
         redis.hgetall(redis_key).inspect if log
       end

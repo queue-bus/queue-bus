@@ -39,7 +39,7 @@ module QueueBus
       # Used internally to keep track of which queues we've created.
       # Don't call this directly.
       def watch_queue(queue)
-        redis { |redis| redis.sadd(:queues, queue.to_s) }
+        redis { |redis| redis.sadd?(:queues, queue.to_s) }
       end
 
       # Used internally to stuff the item into the schedule sorted list.
