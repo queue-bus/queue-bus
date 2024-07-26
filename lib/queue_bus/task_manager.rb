@@ -31,6 +31,13 @@ module QueueBus
       log "  ...done"
     end
 
+    def unsubscribe_app!(app_key)
+      log "Removing all subscriptions for #{app_key}"
+      app = ::QueueBus::Application.new(app_key)
+      app.unsubscribe
+      log "  ...done"
+    end
+
     def unsubscribe!
       count = 0
       ::QueueBus.dispatchers.each do |dispatcher|

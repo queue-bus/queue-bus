@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3]
+- modifies `queuebus:unsubscribe` to decommission only the specified application when passed exactly one argument.
+
 ## [0.13.2]
 
 ### Fixes
