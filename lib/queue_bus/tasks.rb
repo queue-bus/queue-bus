@@ -20,8 +20,9 @@ namespace :queuebus do
 
     if app_key && queue
       manager.unsubscribe_queue!(app_key, queue)
+    elsif app_key
+      manager.unsubscribe_app!(app_key)
     else
-      manager = ::QueueBus::TaskManager.new(true)
       count = manager.unsubscribe!
       puts "No subscriptions unsubscribed" if count == 0
     end
