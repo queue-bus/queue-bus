@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = ''
   s.summary     = 'A simple event bus on top of background queues'
   s.description = 'A simple event bus on top of common background queues. Publish and subscribe to events as they occur using what you already have.'
+  s.required_ruby_version = '>= 2.4'
 
   s.rubyforge_project = 'queue-bus'
 
