@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'multi_json'
+require 'json'
 
 module QueueBus
   module Util
@@ -8,36 +8,19 @@ module QueueBus
 
     class DecodeException < StandardError; end
 
-    # multi_json 1.21+ renamed the MultiJson constant to MultiJSON and
-    # deprecated load/dump in favor of parse/generate (removed in 2.0).
-    JSON_LIB = defined?(::MultiJSON) && ::MultiJSON.respond_to?(:parse) ? ::MultiJSON : ::MultiJson
-    JSON_PARSE_ERROR = defined?(JSON_LIB::ParseError) ? JSON_LIB::ParseError : JSON_LIB::DecodeError
-
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
-      if JSON_LIB.respond_to?(:generate)
-        JSON_LIB.generate object
-      elsif JSON_LIB.respond_to?(:dump) && JSON_LIB.respond_to?(:load)
-        JSON_LIB.dump object
-      else
-        JSON_LIB.encode object
-      end
+      ::JSON.dump(object.respond_to?(:as_json) ? object.as_json : object)
     end
 
     # Given a string, returns a Ruby object.
     def decode(object)
-      return unless object
+      return if object.nil? || object.strip.empty?
 
       begin
-        if JSON_LIB.respond_to?(:parse)
-          JSON_LIB.parse object
-        elsif JSON_LIB.respond_to?(:dump) && JSON_LIB.respond_to?(:load)
-          JSON_LIB.load object
-        else
-          JSON_LIB.decode object
-        end
-      rescue JSON_PARSE_ERROR => e
+        ::JSON.parse(object)
+      rescue ::JSON::ParserError => e
         raise DecodeException, e.message, e.backtrace
       end
     end
