@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.15.0]
 - Replaces multi_json with Ruby's built-in `json` library, which every supported Ruby ships with, and drops the multi_json dependency. Output matches multi_json's default `json` adapter. multi_json switched to oj or yajl automatically when either was installed, so apps with those gems now get `json` instead. Apps that relied on queue-bus to load multi_json for them need to require it themselves.
 
 ## [0.14.0]
