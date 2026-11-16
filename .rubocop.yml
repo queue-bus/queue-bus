@@ -10,8 +10,8 @@ Style/FrozenStringLiteralComment:
 Style/DateTime:
   Enabled: true
 
-# http://rubocop.readthedocs.io/en/latest/cops_metrics/#metricslinelength
-Metrics/LineLength:
+# https://docs.rubocop.org/rubocop/cops_layout.html#layoutlinelength
+Layout/LineLength:
   Max: 100
 
 Metrics/MethodLength:
@@ -28,8 +28,4 @@ Layout/DotPosition:
 
 # https://rubocop.readthedocs.io/en/latest/cops_style/#stylehashsyntax
 Style/HashSyntax:
-  Enabled: true
-
-# https://rubocop-rspec.readthedocs.io/en/latest/cops_rspec/#rspecfocus
-RSpec/Focus:
   Enabled: true

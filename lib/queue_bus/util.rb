@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'multi_json'
+require 'json'
 
 module QueueBus
   module Util
@@ -11,24 +11,16 @@ module QueueBus
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
-      if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
-        MultiJson.dump object
-      else
-        MultiJson.encode object
-      end
+      ::JSON.dump(object.respond_to?(:as_json) ? object.as_json : object)
     end
 
     # Given a string, returns a Ruby object.
     def decode(object)
-      return unless object
+      return if object.nil? || object.strip.empty?
 
       begin
-        if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
-          MultiJson.load object
-        else
-          MultiJson.decode object
-        end
-      rescue ::MultiJson::DecodeError => e
+        ::JSON.parse(object)
+      rescue ::JSON::ParserError => e
         raise DecodeException, e.message, e.backtrace
       end
     end

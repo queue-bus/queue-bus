@@ -10,13 +10,16 @@ RSpec.describe QueueBus::Middleware do
 
   let(:base_class) do
     # Creates a unique base class that provides tracking of calls.
+    calls = 0
     Class.new(QueueBus::Middleware::Abstract) do
       class << self
         attr_accessor :called_at
       end
 
-      def call(_args)
-        self.class.called_at = Time.now
+      # A sequence number rather than Time.now, since consecutive calls can
+      # share a timestamp and then sort in the wrong order.
+      define_method(:call) do |_args|
+        self.class.called_at = (calls += 1)
         @app.call
       end
     end
